@@ -130,51 +130,44 @@
       });
   
       // Function to update stock in the backend by product ID
-// Function to update stock in the backend by product ID
-async function updateStock(productId, quantity) {
-  try {
-    console.log("Updating stock for product ID:", productId); // Log ID Produk
-
-    const response = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`);
-    
-    if (!response.ok) {
-      console.error(`Product with ID ${productId} not found. Response status: ${response.status}`);
-      throw new Error(`Product with ID ${productId} not found.`);
-    }
-
-    const productData = await response.json();
-    console.log("Product Data:", productData); // Log data produk
-
-    if (!productData || !productData.id) {
-      console.log(`Product with ID ${productId} not found`);
-      throw new Error(`Product with ID ${productId} does not exist.`);
-    }
-
-    const updateResponse = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ stock: quantity }),
-    });
-
-    if (!updateResponse.ok) {
-      console.error('Failed to update stock for product ID', productId);
-      throw new Error('Failed to update stock.');
-    }
-
-    return await updateResponse.json();
-  } catch (error) {
-    console.error('Error updating stock:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: `Failed to update stock for product ID ${productId}. ${error.message}`,
-    });
-    return null;
-  }
-}
-
+      async function updateStock(productId, quantity) {
+        try {
+          const response = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`);
+      
+          if (!response.ok) {
+            throw new Error(`Product with ID ${productId} not found.`);
+          }
+      
+          const productData = await response.json();
+      
+          // Check if product exists
+          if (!productData || !productData.id) {
+            throw new Error(`Product with ID ${productId} does not exist.`);
+          }
+      
+          const updateResponse = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ stock: quantity }), // Update the stock with the reduced quantity
+          });
+      
+          if (!updateResponse.ok) {
+            throw new Error('Failed to update stock.');
+          }
+      
+          return await updateResponse.json();
+        } catch (error) {
+          console.error('Error updating stock:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: `Failed to update stock for product ID ${productId}. ${error.message}`,
+          });
+          return null;
+        }
+      }
   
       // Checkout button functionality
       checkoutButton.addEventListener("click", async function () {

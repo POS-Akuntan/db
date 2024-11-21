@@ -106,42 +106,69 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script type="module">
-    document.addEventListener("DOMContentLoaded", function () {
-      const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-      const cartList = document.getElementById("cartList");
-      const checkoutButton = document.querySelector(".btn-primary");
+<script type="module">
+  document.addEventListener("DOMContentLoaded", function () {
+    const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+    const cartList = document.getElementById("cartList");
+    const checkoutButton = document.querySelector(".btn-primary");
 
-      // Render selected products in the cart
-      selectedProducts.forEach(product => {
-        const listItem = document.createElement("li");
-        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-        listItem.innerHTML = `
-          <div>
-            <strong>${product.name}</strong> <br>
-            <small>Category: ${product.category}</small> <br>
-            <small>Description: ${product.description}</small> <br>
-            <small>Price: ${product.price}</small> <br>
-            <small>Quantity: ${product.quantity}</small>
-          </div>
-          <span class="badge bg-primary rounded-pill">${product.quantity}</span>
-        `;
-        cartList.appendChild(listItem);
-      });
+    // Render selected products in the cart
+    selectedProducts.forEach(product => {
+      const listItem = document.createElement("li");
+      listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+      listItem.innerHTML = `
+        <div>
+          <strong>${product.name}</strong> <br>
+          <small>Category: ${product.category}</small> <br>
+          <small>Description: ${product.description}</small> <br>
+          <small>Price: ${product.price}</small> <br>
+          <small>Quantity: ${product.quantity}</small>
+        </div>
+        <span class="badge bg-primary rounded-pill">${product.quantity}</span>
+      `;
+      cartList.appendChild(listItem);
+    });
 
-      // Checkout button functionality
-      checkoutButton.addEventListener("click", function () {
-        Swal.fire({
-          icon: 'success',
-          title: 'Checkout Complete!',
-          text: 'Thank you for your purchase!',
-          confirmButtonText: 'OK'
-        }).then(() => {
-          localStorage.removeItem("selectedProducts");
-          cartList.innerHTML = ""; // Clear the cart after checkout
+    // Function to update stock on the backend or file
+    async function updateStock(products) {
+      try {
+        const response = await fetch('https://pos-ochre.vercel.app/api/products/${productId}', {
+          method: 'POST', // Use 'PUT' or 'PATCH' if updating a backend
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ products }),
         });
+        if (!response.ok) {
+          throw new Error('Failed to update stock.');
+        }
+        return await response.json(); // Handle response if needed
+      } catch (error) {
+        console.error('Error updating stock:', error);
+      }
+    }
+
+    // Checkout button functionality
+    checkoutButton.addEventListener("click", async function () {
+      // Calculate new stock and send update to backend
+      await updateStock(selectedProducts.map(product => ({
+        name: product.name,
+        quantity: product.quantity,
+      })));
+
+      // Show success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Checkout Complete!',
+        text: 'Thank you for your purchase!',
+        confirmButtonText: 'OK',
+      }).then(() => {
+        localStorage.removeItem("selectedProducts");
+        cartList.innerHTML = ""; // Clear the cart after checkout
       });
     });
-  </script>
+  });
+</script>
+
 </body>
 </html>

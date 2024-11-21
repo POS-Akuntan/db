@@ -304,63 +304,55 @@
     
         // Checkout button functionality
         checkoutButton.addEventListener("click", async function () {
-          if (selectedProducts.length === 0) {
-            Swal.fire({
-              icon: "warning",
-              title: "Cart is Empty",
-              text: "Please add items to the cart before checking out.",
+          const orderDetails = {
+            order_id: `ORDER-${Date.now()}`,
+            gross_amount: 100000,
+            item_details: [
+              {
+                id: "item01",
+                price: 100000,
+                quantity: 1,
+                name: "Sample Product",
+              },
+            ],
+            customer_details: {
+              first_name: "John",
+              last_name: "Doe",
+              email: "johndoe@example.com",
+            },
+          };
+        
+          // Kirim request ke backend
+          const response = await fetch("http://localhost:5000/api/payments/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderDetails),
+          });
+        
+          const data = await response.json();
+          if (data.token) {
+            // Panggil Snap pop-up dengan token
+            window.snap.pay(data.token, {
+              onSuccess: function (result) {
+                console.log("Payment Success:", result);
+                Swal.fire("Success", "Payment Completed!", "success");
+              },
+              onPending: function (result) {
+                console.log("Payment Pending:", result);
+                Swal.fire("Pending", "Waiting for payment completion.", "warning");
+              },
+              onError: function (result) {
+                console.log("Payment Error:", result);
+                Swal.fire("Error", "Payment Failed.", "error");
+              },
             });
-            return;
+          } else {
+            console.error("Failed to fetch transaction token.");
           }
-    
-          // Calculate total price
-          const totalPrice = selectedProducts.reduce(
-            (sum, product) => sum + product.price * product.quantity,
-            0
-          );
-          const orderId = `ORDER-${Date.now()}`; // Unique order ID
-    
-          // Get transaction token
-          const transactionToken = await getTransactionToken({
-            order_id: orderId,
-            gross_amount: totalPrice,
-            items: selectedProducts.map((product) => ({
-              id: product.id,
-              price: product.price,
-              quantity: product.quantity,
-              name: product.name,
-            })),
-          });
-    
-          if (!transactionToken) return;
-    
-          // Trigger Snap pop-up
-          window.snap.pay(transactionToken, {
-            onSuccess: async function (result) {
-              console.log("Payment Success:", result);
-              Swal.fire("Payment Successful!", "Thank you for your payment.", "success");
-    
-              // Update stock for each product
-              for (const product of selectedProducts) {
-                const success = await updateProductStock(product.id, product.quantity);
-                if (!success) return;
-              }
-    
-              // Clear local storage and reload page
-              localStorage.removeItem("selectedProducts");
-              cartList.innerHTML = "";
-              window.location.reload();
-            },
-            onPending: function (result) {
-              Swal.fire("Payment Pending", "Your payment is being processed.", "info");
-            },
-            onError: function (error) {
-              console.error("Payment Error:", error);
-              Swal.fire("Payment Failed", "Please try again.", "error");
-            },
-          });
         });
-      });
+        
+        });
+
     </script>
     
   </body>

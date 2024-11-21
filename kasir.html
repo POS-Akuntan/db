@@ -194,7 +194,7 @@
             const updateResponse = await updateStock(productId, newStock);
             if (!updateResponse) {
               Swal.fire({
-                icon: 'error',
+                icon: 'success',
                 title: 'Checkout Failed',
                 text: `Failed to update stock for ${product.name}. Please try again.`,
               });

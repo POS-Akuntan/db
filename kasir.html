@@ -149,9 +149,8 @@
             return false;
           }
       
-          // Prepare full product data for PUT request
+          // Prepare updated data without "id"
           const updatedProduct = {
-            id: productData.id,
             name: productData.name,
             price: parseFloat(productData.price), // Ensure price is a number
             category: productData.category,
@@ -182,6 +181,7 @@
           return false; // Indicate failure
         }
       }
+      
       
   
       // Checkout button functionality

@@ -142,6 +142,8 @@
               <!-- Cart items will be populated here -->
             </ul>
             <button class="btn btn-primary mt-3">Checkout</button>
+            <button id="payButton" class="btn btn-success">Pay with Midtrans</button>
+
           </div>
         </div>
       </div>
@@ -149,22 +151,18 @@
 
 
     <!-- fetch -->
-
-<!-- fetch -->
-    <!-- fetch -->
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-Iy2kNMoe1FySWGXT"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
       document.addEventListener("DOMContentLoaded", function () {
-        const selectedProducts =
-          JSON.parse(localStorage.getItem("selectedProducts")) || [];
+        const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
         const cartList = document.getElementById("cartList");
         const checkoutButton = document.querySelector(".btn-primary");
     
         // Render selected products in the cart
-        selectedProducts.forEach((product) => {
+        selectedProducts.forEach(product => {
           const listItem = document.createElement("li");
-          listItem.className =
-            "list-group-item d-flex justify-content-between align-items-center";
+          listItem.className = "list-group-item d-flex justify-content-between align-items-center";
           listItem.innerHTML = `
             <div>
               <strong>${product.name || "Unknown Product"}</strong> <br>
@@ -178,44 +176,17 @@
           cartList.appendChild(listItem);
         });
     
-        // Function to get transaction token from backend
-        async function getTransactionToken(orderDetails) {
-          try {
-            const response = await fetch("YOUR_BACKEND_URL/create-transaction", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(orderDetails),
-            });
-    
-            if (!response.ok) {
-              throw new Error("Failed to create transaction.");
-            }
-    
-            const { token } = await response.json();
-            return token;
-          } catch (error) {
-            console.error("Error fetching transaction token:", error);
-            Swal.fire({
-              icon: "error",
-              title: "Error",
-              text: "Failed to initiate payment. Please try again later.",
-            });
-            return null;
-          }
-        }
-    
         // Function to update product stock via API
         async function updateProductStock(productId, quantityToReduce) {
           try {
-            const response = await fetch(
-              `https://pos-ochre.vercel.app/api/products/${productId}`
-            );
-            if (!response.ok)
-              throw new Error(`Product with ID ${productId} not found.`);
-    
+            // Fetch existing product data
+            const response = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`);
+            if (!response.ok) throw new Error(`Product with ID ${productId} not found.`);
+            
             const productData = await response.json();
             const updatedStock = productData.stock - quantityToReduce;
-    
+        
+            // Validate stock level
             if (updatedStock < 0) {
               Swal.fire({
                 icon: "error",
@@ -224,29 +195,29 @@
               });
               return false;
             }
-    
+        
+            // Prepare updated data without "id"
             const updatedProduct = {
               name: productData.name,
-              price: parseFloat(productData.price),
+              price: parseFloat(productData.price), // Ensure price is a number
               category: productData.category,
               description: productData.description,
               stock: updatedStock,
             };
-    
-            const updateResponse = await fetch(
-              `https://pos-ochre.vercel.app/api/products/${productId}`,
-              {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(updatedProduct),
-              }
-            );
-    
+        
+            // Send PUT request to update product
+            const updateResponse = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(updatedProduct),
+            });
+        
             if (!updateResponse.ok) {
-              throw new Error("Failed to update stock.");
+              const errorText = await updateResponse.text();
+              throw new Error(`Failed to update stock for product ID ${productId}. ${errorText}`);
             }
-    
-            return true;
+        
+            return true; // Indicate success
           } catch (error) {
             console.error("Error updating stock:", error);
             Swal.fire({
@@ -254,9 +225,10 @@
               title: "Error",
               text: `Failed to update stock for product ID ${productId}. ${error.message}`,
             });
-            return false;
+            return false; // Indicate failure
           }
         }
+        
     
         // Checkout button functionality
         checkoutButton.addEventListener("click", async function () {
@@ -269,55 +241,113 @@
             return;
           }
     
-          // Calculate total price
-          const totalPrice = selectedProducts.reduce(
-            (sum, product) => sum + product.price * product.quantity,
-            0
-          );
-          const orderId = `ORDER-${Date.now()}`; // Unique order ID
+          // Loop through the selected products and update the stock for each one
+          for (const product of selectedProducts) {
+            const success = await updateProductStock(product.id, product.quantity);
+            if (!success) return; // Stop if any update fails
+          }
     
-          // Get transaction token
-          const transactionToken = await getTransactionToken({
-            order_id: orderId,
-            gross_amount: totalPrice,
-            items: selectedProducts.map((product) => ({
-              id: product.id,
-              price: product.price,
-              quantity: product.quantity,
-              name: product.name,
-            })),
+          // Show success message
+          Swal.fire({
+            icon: "success",
+            title: "Checkout Complete!",
+            text: "Thank you for your purchase!",
+            confirmButtonText: "OK",
+          }).then(() => {
+            // Clear local storage and cart
+            localStorage.removeItem("selectedProducts");
+            cartList.innerHTML = "";
+    
+            // Optionally, refresh the page or redirect to another page
+            window.location.reload();
           });
-    
-          if (!transactionToken) return;
-    
-          // Trigger Snap pop-up
-          window.snap.pay(transactionToken, {
-            onSuccess: async function (result) {
-              console.log("Payment Success:", result);
-              Swal.fire("Payment Successful!", "Thank you for your payment.", "success");
-    
-              // Update stock for each product
-              for (const product of selectedProducts) {
-                const success = await updateProductStock(product.id, product.quantity);
-                if (!success) return;
+          //ty mitansssssssssssssssssssssssssssssssssssssssssssssssssssssssss
+          document.getElementById("payButton").addEventListener("click", async function () {
+            const totalPrice = selectedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
+            const orderId = `ORDER-${Date.now()}`; // Unique order ID
+          
+            try {
+              // Create transaction and get Snap token from backend
+              const response = await fetch("/create-transaction", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  order_id: orderId,
+                  gross_amount: totalPrice,
+                  items: selectedProducts.map((product) => ({
+                    id: product.id,
+                    price: product.price,
+                    quantity: product.quantity,
+                    name: product.name,
+                  })),
+                }),
+              });
+          
+              const { token } = await response.json();
+          
+              // Trigger Snap pop-up
+              window.snap.pay(token, {
+                onSuccess: function (result) {
+                  console.log("Payment Success:", result);
+                  Swal.fire("Payment Successful!", "Thank you for your payment.", "success");
+          
+                  // Update stock after successful payment
+                  updateStockAfterPayment(selectedProducts);
+          
+                  // Clear cart and reload page
+                  localStorage.removeItem("selectedProducts");
+                  window.location.reload();
+                },
+                onPending: function (result) {
+                  Swal.fire("Payment Pending", "Your payment is being processed.", "info");
+                },
+                onError: function (error) {
+                  Swal.fire("Payment Failed", "Please try again.", "error");
+                },
+              });
+            } catch (error) {
+              console.error(error);
+              Swal.fire("Error", "Failed to create transaction.", "error");
+            }
+          });
+          
+          async function updateStockAfterPayment(products) {
+            for (let product of products) {
+              const updatedStock = await updateProductStock(product.id, product.quantity);
+              if (!updatedStock) {
+                console.error("Failed to update stock for:", product.id);
               }
-    
-              // Clear local storage and reload page
-              localStorage.removeItem("selectedProducts");
-              cartList.innerHTML = "";
-              window.location.reload();
-            },
-            onPending: function (result) {
-              Swal.fire("Payment Pending", "Your payment is being processed.", "info");
-            },
-            onError: function (error) {
-              console.error("Payment Error:", error);
-              Swal.fire("Payment Failed", "Please try again.", "error");
-            },
+            }
+          }
+          //weebhook???................................................................
+          app.post("/midtrans-notification", async (req, res) => {
+            const notification = req.body;
+          
+            try {
+              const statusResponse = await coreApi.transaction.notification(notification);
+              const orderId = statusResponse.order_id;
+              const transactionStatus = statusResponse.transaction_status;
+          
+              if (transactionStatus === "capture" || transactionStatus === "settlement") {
+                console.log(`Payment for order ${orderId} is successful.`);
+                // Update payment status in database
+              } else if (transactionStatus === "pending") {
+                console.log(`Payment for order ${orderId} is pending.`);
+              } else if (transactionStatus === "deny" || transactionStatus === "expire" || transactionStatus === "cancel") {
+                console.log(`Payment for order ${orderId} failed.`);
+              }
+          
+              res.status(200).send("Notification received.");
+            } catch (error) {
+              console.error("Failed to process notification:", error);
+              res.status(500).send("Failed to process notification.");
+            }
           });
+          
         });
       });
     </script>
+    
 
     
   </body>

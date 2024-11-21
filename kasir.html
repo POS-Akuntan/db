@@ -132,29 +132,43 @@
       // Function to update stock in the backend by product ID
       async function updateStock(productId, quantity) {
         try {
-          const response = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`, {
+          const response = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`);
+      
+          if (!response.ok) {
+            throw new Error(`Product with ID ${productId} not found.`);
+          }
+      
+          const productData = await response.json();
+      
+          // Check if product exists
+          if (!productData || !productData.id) {
+            throw new Error(`Product with ID ${productId} does not exist.`);
+          }
+      
+          const updateResponse = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ stock: quantity }), // Mengirimkan stok yang sudah dikurangi
+            body: JSON.stringify({ stock: quantity }),
           });
-    
-          if (!response.ok) {
+      
+          if (!updateResponse.ok) {
             throw new Error('Failed to update stock.');
           }
-    
-          return await response.json();
+      
+          return await updateResponse.json();
         } catch (error) {
           console.error('Error updating stock:', error);
           Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Failed to update stock. Please try again later.',
+            text: `Failed to update stock for product ID ${productId}. ${error.message}`,
           });
           return null;
         }
       }
+      
     
       // Checkout button functionality
       checkoutButton.addEventListener("click", async function () {

@@ -111,7 +111,7 @@
       const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
       const cartList = document.getElementById("cartList");
       const checkoutButton = document.querySelector(".btn-primary");
-    
+  
       // Render selected products in the cart
       selectedProducts.forEach(product => {
         const listItem = document.createElement("li");
@@ -122,13 +122,13 @@
             <small>Category: ${product.category || "Not Available"}</small> <br>
             <small>Description: ${product.description || "Not Available"}</small> <br>
             <small>Price: ${product.price || 0}</small> <br>
-            <small>Quantity: ${product.quantity || 0}</small>
+            <small>Quantity: ${product.quantity || 0}</small> <br>
           </div>
           <span class="badge bg-primary rounded-pill">${product.quantity || 0}</span>
         `;
         cartList.appendChild(listItem);
       });
-    
+  
       // Function to update stock in the backend by product ID
       async function updateStock(productId, quantity) {
         try {
@@ -150,7 +150,7 @@
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ stock: quantity }),
+            body: JSON.stringify({ stock: quantity }), // Update the stock with the reduced quantity
           });
       
           if (!updateResponse.ok) {
@@ -168,8 +168,7 @@
           return null;
         }
       }
-      
-    
+  
       // Checkout button functionality
       checkoutButton.addEventListener("click", async function () {
         if (selectedProducts.length === 0) {
@@ -180,7 +179,7 @@
           });
           return;
         }
-    
+  
         // Loop through the selected products and update the stock for each one
         for (let product of selectedProducts) {
           const productId = product.id;
@@ -228,6 +227,7 @@
       });
     });
   </script>
+  
   
 
   

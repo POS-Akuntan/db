@@ -106,93 +106,115 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
+  <script type="module">
     document.addEventListener("DOMContentLoaded", function () {
-        const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-        const cartList = document.getElementById("cartList");
-        const checkoutButton = document.querySelector(".btn-primary");
-
-        // Render selected products in the cart
-        selectedProducts.forEach(product => {
-            const listItem = document.createElement("li");
-            listItem.className = "list-group-item d-flex justify-content-between align-items-center";
-            listItem.innerHTML = `
-                <div>
-                    <strong>${product.name || "Unknown Product"}</strong> <br>
-                    <small>Category: ${product.category || "Not Available"}</small> <br>
-                    <small>Description: ${product.description || "Not Available"}</small> <br>
-                    <small>Price: ${product.price || 0}</small> <br>
-                    <small>Quantity: ${product.quantity || 0}</small>
-                </div>
-                <span class="badge bg-primary rounded-pill">${product.quantity || 0}</span>
-            `;
-            cartList.appendChild(listItem);
-        });
-
-        // Function to update stock in the backende
-        async function updateStock(products) {
-            try {
-                const response = await fetch('https://pos-ochre.vercel.app/api/products/${productId}', {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ products }),
-                });
-
-                if (!response.ok) {
-                    console.error(await response.text());
-                    throw new Error('Failed to update stock.');
-                }
-
-                return await response.json();
-            } catch (error) {
-                console.error('Error updating stock:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Failed to update stock. Please try again later.',
-                });
-                return null;
-            }
+      const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+      const cartList = document.getElementById("cartList");
+      const checkoutButton = document.querySelector(".btn-primary");
+    
+      // Render selected products in the cart
+      selectedProducts.forEach(product => {
+        const listItem = document.createElement("li");
+        listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+        listItem.innerHTML = `
+          <div>
+            <strong>${product.name || "Unknown Product"}</strong> <br>
+            <small>Category: ${product.category || "Not Available"}</small> <br>
+            <small>Description: ${product.description || "Not Available"}</small> <br>
+            <small>Price: ${product.price || 0}</small> <br>
+            <small>Quantity: ${product.quantity || 0}</small>
+          </div>
+          <span class="badge bg-primary rounded-pill">${product.quantity || 0}</span>
+        `;
+        cartList.appendChild(listItem);
+      });
+    
+      // Function to update stock in the backend by product ID
+      async function updateStock(productId, quantity) {
+        try {
+          const response = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ stock: quantity }), // Mengirimkan stok yang sudah dikurangi
+          });
+    
+          if (!response.ok) {
+            throw new Error('Failed to update stock.');
+          }
+    
+          return await response.json();
+        } catch (error) {
+          console.error('Error updating stock:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update stock. Please try again later.',
+          });
+          return null;
         }
-
-        // Checkout button functionality
-        checkoutButton.addEventListener("click", async function () {
-            if (selectedProducts.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Cart is Empty',
-                    text: 'Please add items to the cart before checking out.',
-                });
-                return;
+      }
+    
+      // Checkout button functionality
+      checkoutButton.addEventListener("click", async function () {
+        if (selectedProducts.length === 0) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Cart is Empty',
+            text: 'Please add items to the cart before checking out.',
+          });
+          return;
+        }
+    
+        // Loop through the selected products and update the stock for each one
+        for (let product of selectedProducts) {
+          const productId = product.id;
+          const currentStock = await fetch(`https://pos-ochre.vercel.app/api/products/${productId}`)
+                                    .then(response => response.json())
+                                    .then(data => data.stock); // Ambil stok saat ini dari API
+  
+          // Pastikan stok cukup
+          if (currentStock >= product.quantity) {
+            // Kurangi stok produk dan update API
+            const newStock = currentStock - product.quantity;
+            const updateResponse = await updateStock(productId, newStock);
+            if (!updateResponse) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Checkout Failed',
+                text: `Failed to update stock for ${product.name}. Please try again.`,
+              });
+              return;
             }
-
-            // Send stock update request to backend
-            const updateResponse = await updateStock(selectedProducts.map(product => ({
-                id: product.id,
-                quantity: -product.quantity, // Use negative quantity to reduce stock
-            })));
-
-            if (updateResponse) {
-                // Show success message
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Checkout Complete!',
-                    text: 'Thank you for your purchase!',
-                    confirmButtonText: 'OK',
-                }).then(() => {
-                    // Clear local storage and cart
-                    localStorage.removeItem("selectedProducts");
-                    cartList.innerHTML = "";
-
-                    // Optionally, refresh the page or redirect to another page
-                    window.location.reload();
-                });
-            }
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Insufficient Stock',
+              text: `Not enough stock for ${product.name}. Please check again.`,
+            });
+            return;
+          }
+        }
+  
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Checkout Complete!',
+          text: 'Thank you for your purchase!',
+          confirmButtonText: 'OK',
+        }).then(() => {
+          // Clear local storage and cart
+          localStorage.removeItem("selectedProducts");
+          cartList.innerHTML = "";
+  
+          // Optionally, refresh the page or redirect to another page
+          window.location.reload();
         });
+      });
     });
-</script>
+  </script>
+  
 
   
   

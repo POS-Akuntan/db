@@ -151,7 +151,6 @@
 
 
     <!-- fetch -->
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-Iy2kNMoe1FySWGXT"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
       document.addEventListener("DOMContentLoaded", function () {
@@ -261,89 +260,6 @@
             // Optionally, refresh the page or redirect to another page
             window.location.reload();
           });
-          //ty mitansssssssssssssssssssssssssssssssssssssssssssssssssssssssss
-          document.getElementById("payButton").addEventListener("click", async function () {
-            const totalPrice = selectedProducts.reduce((sum, product) => sum + product.price * product.quantity, 0);
-            const orderId = `ORDER-${Date.now()}`; // Unique order ID
-          
-            try {
-              // Create transaction and get Snap token from backend
-              const response = await fetch("/create-transaction", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  order_id: orderId,
-                  gross_amount: totalPrice,
-                  items: selectedProducts.map((product) => ({
-                    id: product.id,
-                    price: product.price,
-                    quantity: product.quantity,
-                    name: product.name,
-                  })),
-                }),
-              });
-          
-              const { token } = await response.json();
-          
-              // Trigger Snap pop-up
-              window.snap.pay(token, {
-                onSuccess: function (result) {
-                  console.log("Payment Success:", result);
-                  Swal.fire("Payment Successful!", "Thank you for your payment.", "success");
-          
-                  // Update stock after successful payment
-                  updateStockAfterPayment(selectedProducts);
-          
-                  // Clear cart and reload page
-                  localStorage.removeItem("selectedProducts");
-                  window.location.reload();
-                },
-                onPending: function (result) {
-                  Swal.fire("Payment Pending", "Your payment is being processed.", "info");
-                },
-                onError: function (error) {
-                  Swal.fire("Payment Failed", "Please try again.", "error");
-                },
-              });
-            } catch (error) {
-              console.error(error);
-              Swal.fire("Error", "Failed to create transaction.", "error");
-            }
-          });
-          
-          async function updateStockAfterPayment(products) {
-            for (let product of products) {
-              const updatedStock = await updateProductStock(product.id, product.quantity);
-              if (!updatedStock) {
-                console.error("Failed to update stock for:", product.id);
-              }
-            }
-          }
-          //weebhook???................................................................
-          app.post("/midtrans-notification", async (req, res) => {
-            const notification = req.body;
-          
-            try {
-              const statusResponse = await coreApi.transaction.notification(notification);
-              const orderId = statusResponse.order_id;
-              const transactionStatus = statusResponse.transaction_status;
-          
-              if (transactionStatus === "capture" || transactionStatus === "settlement") {
-                console.log(`Payment for order ${orderId} is successful.`);
-                // Update payment status in database
-              } else if (transactionStatus === "pending") {
-                console.log(`Payment for order ${orderId} is pending.`);
-              } else if (transactionStatus === "deny" || transactionStatus === "expire" || transactionStatus === "cancel") {
-                console.log(`Payment for order ${orderId} failed.`);
-              }
-          
-              res.status(200).send("Notification received.");
-            } catch (error) {
-              console.error("Failed to process notification:", error);
-              res.status(500).send("Failed to process notification.");
-            }
-          });
-          
         });
       });
     </script>

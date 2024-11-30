@@ -1,0 +1,13 @@
+{
+    "order_id": "ORDER-12345",
+    "gross_amount": 500000,
+    "items": [
+      {
+        "id": "item-01",
+        "name": "Product A",
+        "price": 250000,
+        "quantity": 2
+      }
+    ]
+  }
+  

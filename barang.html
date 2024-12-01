@@ -125,23 +125,34 @@
     <!-- Same structure as before -->
     <script>
       let selectedProducts = [];
-
+      let categoriesMap = {}; // Untuk memetakan category_id ke category_name
+    
       async function fetchGudangData() {
         try {
+          // Ambil data kategori terlebih dahulu
+          const categoryResponse = await fetch(
+            "https://pos-ochre.vercel.app/api/categories"
+          );
+          const categories = await categoryResponse.json();
+          categories.forEach((category) => {
+            categoriesMap[category.id] = category.name; // Buat map id -> name
+          });
+    
+          // Ambil data produk
           const response = await fetch(
             "https://pos-ochre.vercel.app/api/products"
           );
           const data = await response.json();
-
+    
           const tableBody = document.querySelector("#dt tbody");
           tableBody.innerHTML = "";
-
+    
           data.forEach((item) => {
             const row = document.createElement("tr");
             row.innerHTML = `
                   <td>${item.id}</td>
                   <td>${item.name}</td>
-                  <td>${item.category}</td>
+                  <td>${categoriesMap[item.category] || item.category}</td> <!-- Tampilkan nama kategori -->
                   <td>${item.description}</td>
                   <td>${item.price}</td>
                   <td id="stock-${item.id}">${item.stock}</td>
@@ -153,7 +164,7 @@
               `;
             tableBody.appendChild(row);
           });
-
+    
           $("#dt").DataTable({
             responsive: true,
           });
@@ -161,17 +172,17 @@
           console.error("Error fetching warehouse data:", error);
         }
       }
-
+    
       function addProduct(id, name, price, category, description) {
         const stockElement = document.getElementById(`stock-${id}`);
         const quantityElement = document.getElementById(`quantity-${id}`);
         let stock = parseInt(stockElement.innerText);
         let quantity = parseInt(quantityElement.value);
-
+    
         if (stock > 0) {
           stockElement.innerText = stock - 1;
           quantityElement.value = quantity + 1;
-
+    
           const productIndex = selectedProducts.findIndex((p) => p.id === id);
           if (productIndex > -1) {
             selectedProducts[productIndex].quantity += 1;
@@ -180,7 +191,7 @@
               id,
               name,
               price,
-              category,
+              category, // Simpan category_id, bukan category_name
               description,
               quantity: 1,
             });
@@ -189,17 +200,17 @@
           alert("Stok habis!");
         }
       }
-
+    
       function removeProduct(id) {
         const stockElement = document.getElementById(`stock-${id}`);
         const quantityElement = document.getElementById(`quantity-${id}`);
         let stock = parseInt(stockElement.innerText);
         let quantity = parseInt(quantityElement.value);
-
+    
         if (quantity > 0) {
           stockElement.innerText = stock + 1;
           quantityElement.value = quantity - 1;
-
+    
           const productIndex = selectedProducts.findIndex((p) => p.id === id);
           if (productIndex > -1) {
             if (selectedProducts[productIndex].quantity > 1) {
@@ -210,7 +221,7 @@
           }
         }
       }
-
+    
       document
         .getElementById("checkoutBtn")
         .addEventListener("click", function () {
@@ -220,8 +231,9 @@
           );
           window.location.href = "kasir.html";
         });
-
+    
       document.addEventListener("DOMContentLoaded", fetchGudangData);
     </script>
+    
   </body>
 </html>

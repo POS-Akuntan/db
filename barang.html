@@ -228,47 +228,8 @@
       
     
       document.getElementById("checkoutBtn").addEventListener("click", function () {
-        // Get the token from localStorage
-        const token = localStorage.getItem("token"); // Adjusted token key
-        
-        if (!token) {
-          alert("Token not found. Please log in.");
-          return;
-        }
-    
-        // Prepare the data for the transaction
-        const transactionData = {
-
-
-        };
-    
-        // Send POST request to create the transaction (get transaction ID)
-        fetch("https://pos-ochre.vercel.app/api/transactions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`, // Include the token in the Authorization header
-          },
-          body: JSON.stringify(transactionData),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            // Check if the ID is returned and log the transaction data
-            if (data.id) {
-              console.log("Transaction created with ID:", data.id);
-    
-              // Save the transaction ID to localStorage for later use
-              localStorage.setItem("transactionId", data.id);
-    
-              // Optionally, redirect to kasir.html after transaction is created
-              window.location.href = "kasir.html";
-            } else {
-              console.error("Failed to create transaction:", data);
-            }
-          })
-          .catch((error) => {
-            console.error("Error creating transaction:", error);
-          });
+        localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+        window.location.href = "kasir.html";
       });
     
       document.addEventListener("DOMContentLoaded", fetchGudangData);

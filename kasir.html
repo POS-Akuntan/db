@@ -202,7 +202,7 @@
       // Handle Pay Button in Payment Modal
       document.getElementById("payButton").addEventListener("click", async () => {
         const paymentMethod = document.getElementById("paymentMethod").value;
-        const userId = "user123"; // Ganti dengan ID pengguna yang sebenarnya dari sesi atau localStorage
+        const userId = "user123"; // Replace with actual user ID from session or localStorage
         const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
     
         if (selectedProducts.length === 0) {
@@ -257,6 +257,7 @@
               unit_price: product.price,
             };
     
+            // Save transaction item
             try {
               const itemResponse = await fetch("https://pos-ochre.vercel.app/api/transaction-items", {
                 method: "POST",
@@ -278,42 +279,9 @@
               Swal.fire("Error", "There was an error during transaction processing.", "error");
               return;
             }
-    
-            try {
-              console.log("Updating stock for product ID:", product.id);
-              const stockResponse = await fetch(`https://pos-ochre.vercel.app/api/products/${product.id}`, {
-                method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  stock: product.stock - product.quantity,
-                }),
-              });
-    
-              const stockResponseText = await stockResponse.text();
-              console.log("Stock Response:", stockResponseText);
-    
-              try {
-                const stockResponseJson = JSON.parse(stockResponseText);
-                if (!stockResponse.ok) {
-                  console.error("Error Updating Stock:", stockResponseJson);
-                  Swal.fire("Error", "Failed to update stock.", "error");
-                  return;
-                }
-              } catch (error) {
-                console.error("Unexpected Response Format:", stockResponseText);
-                Swal.fire("Error", "Unexpected server response format.", "error");
-                return;
-              }
-            } catch (error) {
-              console.error("Stock Update Error:", error);
-              Swal.fire("Error", "There was an error updating the stock.", "error");
-              return;
-            }
           }
     
+          // Clear selected products and show success message
           localStorage.removeItem("selectedProducts");
           Swal.fire("Success", "Payment successful!", "success").then(() => {
             window.location.href = "barang.html";
@@ -326,10 +294,6 @@
     </script>
     
     
-    
-    
-    
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

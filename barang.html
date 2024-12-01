@@ -125,23 +125,19 @@
     <!-- Same structure as before -->
     <script>
       let selectedProducts = [];
-      let categoriesMap = {}; // Untuk memetakan category_id ke category_name
+      let categoriesMap = {}; // For mapping category_id to category_name
     
       async function fetchGudangData() {
         try {
-          // Ambil data kategori terlebih dahulu
-          const categoryResponse = await fetch(
-            "https://pos-ochre.vercel.app/api/categories"
-          );
+          // Fetch categories first
+          const categoryResponse = await fetch("https://pos-ochre.vercel.app/api/categories");
           const categories = await categoryResponse.json();
           categories.forEach((category) => {
-            categoriesMap[category.id] = category.name; // Buat map id -> name
+            categoriesMap[category.id] = category.name;
           });
     
-          // Ambil data produk
-          const response = await fetch(
-            "https://pos-ochre.vercel.app/api/products"
-          );
+          // Fetch product data
+          const response = await fetch("https://pos-ochre.vercel.app/api/products");
           const data = await response.json();
     
           const tableBody = document.querySelector("#dt tbody");
@@ -149,19 +145,19 @@
     
           data.forEach((item) => {
             const row = document.createElement("tr");
-            row.innerHTML = `
-                  <td>${item.id}</td>
-                  <td>${item.name}</td>
-                  <td>${categoriesMap[item.category] || item.category}</td> <!-- Tampilkan nama kategori -->
-                  <td>${item.description}</td>
-                  <td>${item.price}</td>
-                  <td id="stock-${item.id}">${item.stock}</td>
-                  <td>
-                      <button class="btn btn-success btn-sm" onclick="addProduct('${item.id}', '${item.name}', '${item.price}', '${item.category}', '${item.description}')">+</button>
-                      <input type="text" id="quantity-${item.id}" value="0" style="width: 40px; text-align: center;" readonly />
-                      <button class="btn btn-danger btn-sm" onclick="removeProduct('${item.id}')">-</button>
-                  </td>
-              `;
+            row.innerHTML = `    
+              <td>${item.id}</td>
+              <td>${item.name}</td>
+              <td>${categoriesMap[item.category] || item.category}</td>
+              <td>${item.description}</td>
+              <td>${item.price}</td>
+              <td id="stock-${item.id}">${item.stock}</td>
+              <td>
+                <button class="btn btn-success btn-sm" onclick="addProduct('${item.id}', '${item.name}', '${item.price}', '${item.category}', '${item.description}')">+</button>
+                <input type="text" id="quantity-${item.id}" value="0" style="width: 40px; text-align: center;" readonly />
+                <button class="btn btn-danger btn-sm" onclick="removeProduct('${item.id}')">-</button>
+              </td>
+            `;
             tableBody.appendChild(row);
           });
     
@@ -178,11 +174,12 @@
         const quantityElement = document.getElementById(`quantity-${id}`);
         let stock = parseInt(stockElement.innerText);
         let quantity = parseInt(quantityElement.value);
-    
+      
         if (stock > 0) {
           stockElement.innerText = stock - 1;
           quantityElement.value = quantity + 1;
-    
+      
+          // Update the selectedProducts array
           const productIndex = selectedProducts.findIndex((p) => p.id === id);
           if (productIndex > -1) {
             selectedProducts[productIndex].quantity += 1;
@@ -191,26 +188,30 @@
               id,
               name,
               price,
-              category, // Simpan category_id, bukan category_name
+              category,
               description,
               quantity: 1,
             });
           }
+      
+          // Save the updated selectedProducts array to localStorage
+          localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
         } else {
           alert("Stok habis!");
         }
       }
+      
     
       function removeProduct(id) {
         const stockElement = document.getElementById(`stock-${id}`);
         const quantityElement = document.getElementById(`quantity-${id}`);
         let stock = parseInt(stockElement.innerText);
         let quantity = parseInt(quantityElement.value);
-    
+      
         if (quantity > 0) {
           stockElement.innerText = stock + 1;
           quantityElement.value = quantity - 1;
-    
+      
           const productIndex = selectedProducts.findIndex((p) => p.id === id);
           if (productIndex > -1) {
             if (selectedProducts[productIndex].quantity > 1) {
@@ -219,21 +220,60 @@
               selectedProducts.splice(productIndex, 1);
             }
           }
+      
+          // Update localStorage with the modified selectedProducts array
+          localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
         }
       }
+      
     
-      document
-        .getElementById("checkoutBtn")
-        .addEventListener("click", function () {
-          localStorage.setItem(
-            "selectedProducts",
-            JSON.stringify(selectedProducts)
-          );
-          window.location.href = "kasir.html";
-        });
+      document.getElementById("checkoutBtn").addEventListener("click", function () {
+        // Get the token from localStorage
+        const token = localStorage.getItem("token"); // Adjusted token key
+        
+        if (!token) {
+          alert("Token not found. Please log in.");
+          return;
+        }
+    
+        // Prepare the data for the transaction
+        const transactionData = {
+
+
+        };
+    
+        // Send POST request to create the transaction (get transaction ID)
+        fetch("https://pos-ochre.vercel.app/api/transactions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`, // Include the token in the Authorization header
+          },
+          body: JSON.stringify(transactionData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Check if the ID is returned and log the transaction data
+            if (data.id) {
+              console.log("Transaction created with ID:", data.id);
+    
+              // Save the transaction ID to localStorage for later use
+              localStorage.setItem("transactionId", data.id);
+    
+              // Optionally, redirect to kasir.html after transaction is created
+              window.location.href = "kasir.html";
+            } else {
+              console.error("Failed to create transaction:", data);
+            }
+          })
+          .catch((error) => {
+            console.error("Error creating transaction:", error);
+          });
+      });
     
       document.addEventListener("DOMContentLoaded", fetchGudangData);
     </script>
+    
   </body>
 </html>
 <!-- 1 -->

@@ -54,10 +54,26 @@
             <a class="blog-header-logo text-dark" href="#">Kasirku</a>
           </div>
           <div class="col-4 d-flex justify-content-end align-items-center">
-            <a class="btn btn-sm btn-outline-secondary" href="login.html"
-              ><i class="bi bi-person-circle"></i> Masuk</a
-            >
+            <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
           </div>
+          
+          <script>
+            document.getElementById("logoutBtn").addEventListener("click", function (event) {
+              event.preventDefault(); // Mencegah link untuk melakukan redirect langsung
+          
+              // Menghapus item dari localStorage
+              localStorage.removeItem("token");
+              localStorage.removeItem("userEmail");
+              localStorage.removeItem("userName");
+              localStorage.removeItem("userPhoneNumber");
+          
+              // Redirect ke halaman login setelah logout
+              window.location.href = "login.html";
+            });
+          </script>
+          
         </div>
       </header>
 

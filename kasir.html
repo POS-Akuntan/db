@@ -129,6 +129,10 @@
             <button class="btn btn-primary mt-3" id="checkoutButton">
               Checkout
             </button>
+            <div class="mt-3">
+              <h5>Total Harga: <span id="totalPrice">0</span></h5>
+            </div>
+            
           </div>
         </div>
       </div>
@@ -182,8 +186,16 @@
       document.addEventListener("DOMContentLoaded", function () {
         const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
         const cartList = document.getElementById("cartList");
-    
-        // Render products from localStorage
+        const totalPriceElement = document.getElementById("totalPrice");
+      
+        // Fungsi untuk menghitung total harga
+        function calculateTotalPrice(products) {
+          return products.reduce((total, product) => {
+            return total + (parseFloat(product.price) * product.quantity);
+          }, 0);
+        }
+      
+        // Render products dari localStorage
         selectedProducts.forEach((product) => {
           const listItem = document.createElement("li");
           listItem.className = "list-group-item d-flex justify-content-between align-items-center";
@@ -199,6 +211,9 @@
           `;
           cartList.appendChild(listItem);
         });
+      
+        // Perbarui total harga di UI
+        totalPriceElement.textContent = calculateTotalPrice(selectedProducts).toFixed(2);
       });
     
       // Handle Cancel Button

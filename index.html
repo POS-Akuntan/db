@@ -96,8 +96,7 @@
           <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-box-arrow-right"></i> Logout
           </a>
-        </div>
-        
+        </div>     
         <script>
           document.getElementById("logoutBtn").addEventListener("click", function (event) {
             event.preventDefault(); // Mencegah link untuk melakukan redirect langsung
@@ -109,22 +108,7 @@
             localStorage.removeItem("userPhoneNumber");
         
             // Redirect ke halaman login setelah logout
-            window.location.href = "login.html";
-          });
-        </script>
-        
-        <script>
-          document.getElementById("logoutBtn").addEventListener("click", function (event) {
-            event.preventDefault(); // Mencegah link untuk melakukan redirect langsung
-        
-            // Menghapus item dari localStorage
-            localStorage.removeItem("token");
-            localStorage.removeItem("userEmail");
-            localStorage.removeItem("userName");
-            localStorage.removeItem("userPhoneNumber");
-        
-            // Redirect ke halaman login setelah logout
-            window.location.href = "login.html";
+            window.location.href = "https://pos-akuntan.github.io/";
           });
         </script>
       </div>

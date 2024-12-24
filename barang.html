@@ -112,7 +112,7 @@
       <table id="dt" class="table table-bordered w-100">
         <thead>
           <tr>
-            <th>ID</th>
+            <!-- <th>ID</th> -->
             <th>Name</th>
             <th>Category</th>
             <th>Description</th>
@@ -161,7 +161,6 @@
           data.forEach((item) => {
             const row = document.createElement("tr");
             row.innerHTML = `    
-              <td>${item.id}</td>
               <td>${item.name}</td>
               <td>${categoriesMap[item.category] || item.category}</td>
               <td>${item.description}</td>

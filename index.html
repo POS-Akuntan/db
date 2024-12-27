@@ -206,16 +206,16 @@
 
   </main>
 
+  <br>
   <footer class="blog-footer">
     <p>Welcome to Kasirku</p>
   </footer>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Fungsi untuk decode JWT
       function parseJwt(token) {
         try {
-          const base64Url = token.split('.')[1]; // Ambil bagian payload
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Format base64
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
           const jsonPayload = decodeURIComponent(
             atob(base64)
               .split('')
@@ -224,25 +224,26 @@
               })
               .join('')
           );
-          return JSON.parse(jsonPayload); // Kembalikan objek JSON
+          return JSON.parse(jsonPayload);
         } catch (e) {
           console.error("Invalid token:", e);
           return null;
         }
       }
   
-      // Ambil token dari localStorage
       const token = localStorage.getItem("token");
   
-      // Decode token dan ambil data pengguna
       if (token) {
         const userData = parseJwt(token);
   
         if (userData) {
-          // Tampilkan data ke halaman
+          // Atur role yang ditampilkan
+          let displayedRole = userData.role === "user" ? "Kasir" : userData.role;
+  
+          // Tampilkan data ke elemen HTML
           document.getElementById("userGreeting").textContent = `Hello, ${userData.email.split('@')[0]}!`;
           document.getElementById("userEmail").textContent = userData.email;
-          document.getElementById("userRole").textContent = `Role: ${userData.role}`;
+          document.getElementById("userRole").textContent = `Role: ${displayedRole}`;
         } else {
           console.warn("Unable to decode token.");
         }
@@ -251,6 +252,7 @@
       }
     });
   </script>
+  
   
   
 </body>

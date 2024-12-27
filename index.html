@@ -120,28 +120,8 @@
           <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
             <div class="navbar-nav">
               <a class="p-2 nav-link active" href="index.html"><i class="bi bi-house"></i> Home</a>
-              <!-- <a class="p-2 nav-link" href="gudang.html"><i class="bi bi-building"></i> Gudang</a> -->
               <a class="p-2 nav-link" href="barang.html"><i class="bi bi-basket"></i> Barang</a>
               <a class="p-2 nav-link" href="kasir.html"><i class="bi bi-cart"></i> Kasir</a>
-              <!-- <div class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-                  <i class="bi bi-person-fill"></i> Admin
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                  <li><a class="dropdown-item" href="#">User</a></li>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li>
-                  <li><a class="dropdown-item" href="#">Pemasukan</a></li>
-                  <li><a class="dropdown-item" href="#">Pengeluaran</a></li>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li>
-                  <li><a class="dropdown-item" href="#">Master Data</a></li>
-                  <li><a class="dropdown-item" href="#">Pengaturan Toko</a></li>
-                </ul>
-              </div> -->
             </div>
           </div>
         </div>
@@ -150,49 +130,30 @@
   </div>
 
   <main class="container">
-    <!-- <div class="row mb-2">
-    <div class="col-md-6">
-      <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-        <div class="col p-4 d-flex flex-column position-static">
-          <strong class="d-inline-block mb-2 text-primary">World</strong>
-          <h3 class="mb-0">Featured post</h3>
-          <div class="mb-1 text-muted">Nov 12</div>
-          <p class="card-text mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p>
-          <a href="#" class="stretched-link">Continue reading</a>
-        </div>
-        <div class="col-auto d-none d-lg-block">
-          <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-
+      <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+          <div class="card text-center">
+            <div class="card-body">
+              <h3 id="userGreeting">Hello, User!</h3>
+              <p id="userEmail" class="text-muted">user@example.com</p>
+              <p id="userRole" class="fw-bold">Role: User</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
-        <div class="col p-4 d-flex flex-column position-static">
-          <strong class="d-inline-block mb-2 text-success">Design</strong>
-          <h3 class="mb-0">Post title</h3>
-          <div class="mb-1 text-muted">Nov 11</div>
-          <p class="mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p>
-          <a href="#" class="stretched-link">Continue reading</a>
-        </div>
-        <div class="col-auto d-none d-lg-block">
-          <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
 
-        </div>
-      </div>
-    </div>
-  </div> -->
+    
 
-    <div class="row g-5 mb-4">
+    <!-- <div class="row g-5 mb-4">
       <div class="col-md-8">
         <div class="row pt-2 mb-4 mt-3 px-5">
           <div class="input-group">
             <input class="form-control" id="search" type="search" placeholder="Cari Barang" aria-label="Search">
             <span class="input-group-text" id="icon"><i class="bi bi-search"></i></span>
           </div>
-        </div>
+        </div> -->
 
-        <div id="produk" class="row g-5">
+        <!-- <div id="produk" class="row g-5">
 
           <table id="dt" class="table w-100">
             <thead>
@@ -241,19 +202,57 @@
               </tbody>
             </table>
 
-            <a href="#" class="btn btn-success btn-sm float-end"><i class="bi bi-cash"></i> Proses</a>
-          </div>
-        </div>
-
-      </div>
-    </div>
-    </div>
+            <a href="#" class="btn btn-success btn-sm float-end"><i class="bi bi-cash"></i> Proses</a> -->
 
   </main>
 
   <footer class="blog-footer">
     <p>Welcome to Kasirku</p>
   </footer>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Fungsi untuk decode JWT
+      function parseJwt(token) {
+        try {
+          const base64Url = token.split('.')[1]; // Ambil bagian payload
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Format base64
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              })
+              .join('')
+          );
+          return JSON.parse(jsonPayload); // Kembalikan objek JSON
+        } catch (e) {
+          console.error("Invalid token:", e);
+          return null;
+        }
+      }
+  
+      // Ambil token dari localStorage
+      const token = localStorage.getItem("token");
+  
+      // Decode token dan ambil data pengguna
+      if (token) {
+        const userData = parseJwt(token);
+  
+        if (userData) {
+          // Tampilkan data ke halaman
+          document.getElementById("userGreeting").textContent = `Hello, ${userData.email.split('@')[0]}!`;
+          document.getElementById("userEmail").textContent = userData.email;
+          document.getElementById("userRole").textContent = `Role: ${userData.role}`;
+        } else {
+          console.warn("Unable to decode token.");
+        }
+      } else {
+        console.warn("Token not found in localStorage.");
+      }
+    });
+  </script>
+  
+  
 </body>
 
 </html>

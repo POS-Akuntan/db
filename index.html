@@ -210,7 +210,12 @@
   <footer class="blog-footer">
     <p>Welcome to Kasirku</p>
   </footer>
-  <script>
+  <script type="module">
+    import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
+    import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
+  
+    addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
+  
     document.addEventListener("DOMContentLoaded", function () {
       function parseJwt(token) {
         try {
@@ -237,51 +242,8 @@
         const userData = parseJwt(token);
   
         if (userData) {
-          // Atur role yang ditampilkan
-          let displayedRole = userData.role === "user" ? "Kasir" : userData.role;
-  
-          // Tampilkan data ke elemen HTML
-          document.getElementById("userGreeting").textContent = `Hello, ${userData.email.split('@')[0]}!`;
-          document.getElementById("userEmail").textContent = userData.email;
-          document.getElementById("userRole").textContent = `Role: ${displayedRole}`;
-        } else {
-          console.warn("Unable to decode token.");
-        }
-      } else {
-        console.warn("Token not found in localStorage.");
-      }
-    });
-  </script>
-  <!-- validasi is active -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      function parseJwt(token) {
-        try {
-          const base64Url = token.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map(function (c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-              })
-              .join('')
-          );
-          return JSON.parse(jsonPayload);
-        } catch (e) {
-          console.error("Invalid token:", e);
-          return null;
-        }
-      }
-  
-      const token = localStorage.getItem("token");
-  
-      if (token) {
-        const userData = parseJwt(token);
-  
-        if (userData) {
-          // Periksa status is_active
-          if (userData.is_active === false || userData.is_active === "false") {
+          // Periksa status is_active dengan pengecekan lebih fleksibel
+          if (!userData.is_active || userData.is_active.toString() === "false") {
             Swal.fire({
               icon: "error",
               title: "Akun Diblokir",
@@ -293,22 +255,42 @@
               window.location.href = "https://pos-akuntan.github.io/";
             });
           } else {
-            // Jika is_active true, lanjutkan menampilkan data pengguna
-            document.getElementById("userGreeting").textContent = `Hello, ${userData.name}!`;
+            // Atur role yang ditampilkan
+            let displayedRole = userData.role === "user" ? "Kasir" : userData.role;
+  
+            // Tampilkan data ke elemen HTML
+            document.getElementById("userGreeting").textContent = `Hello, ${userData.name || userData.email.split('@')[0]}!`;
             document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
-            document.getElementById("userRole").textContent = `Role: ${
-              userData.role === "user" ? "Kasir" : "Admin"
-            }`;
+            document.getElementById("userRole").textContent = `Role: ${displayedRole}`;
           }
         } else {
           console.warn("Unable to decode token.");
+          Swal.fire({
+            icon: "warning",
+            title: "Akses Ditolak",
+            text: "Token tidak valid. Silakan login kembali.",
+            confirmButtonText: "Login",
+          }).then(() => {
+            window.location.href = "https://pos-akuntan.github.io/";
+          });
         }
       } else {
         console.warn("Token not found in localStorage.");
-        window.location.href = "https://pos-akuntan.github.io/"; // Arahkan ke halaman login jika token tidak ada
+        Swal.fire({
+          icon: "warning",
+          title: "Akses Ditolak",
+          text: "Silakan login terlebih dahulu.",
+          confirmButtonText: "Login",
+        }).then(() => {
+          window.location.href = "https://pos-akuntan.github.io/";
+        });
       }
     });
   </script>
+  
+  
+  <!-- validasi is active -->
+
   
   
   

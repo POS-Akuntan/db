@@ -242,8 +242,8 @@
         const userData = parseJwt(token);
   
         if (userData) {
-          // Periksa status is_active dengan pengecekan lebih fleksibel
-          if (!userData.is_active || userData.is_active.toString() === "false") {
+          // Validasi status is_active dengan lebih ketat
+          if (userData.is_active === false || userData.is_active === "false") {
             Swal.fire({
               icon: "error",
               title: "Akun Diblokir",
@@ -287,6 +287,7 @@
       }
     });
   </script>
+  
   
   
   <!-- validasi is active -->

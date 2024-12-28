@@ -240,9 +240,10 @@
   
       if (token) {
         const userData = parseJwt(token);
+        console.log(userData); // Debugging: Lihat isi token yang di-decode
   
         if (userData) {
-          // Validasi status is_active dengan lebih ketat
+          // Periksa status is_active dengan ketat
           if (userData.is_active === false || userData.is_active === "false") {
             Swal.fire({
               icon: "error",
@@ -287,8 +288,6 @@
       }
     });
   </script>
-  
-  
   
   <!-- validasi is active -->
 

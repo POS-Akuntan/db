@@ -252,6 +252,63 @@
       }
     });
   </script>
+  <!-- validasi is active -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      function parseJwt(token) {
+        try {
+          const base64Url = token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+              })
+              .join('')
+          );
+          return JSON.parse(jsonPayload);
+        } catch (e) {
+          console.error("Invalid token:", e);
+          return null;
+        }
+      }
+  
+      const token = localStorage.getItem("token");
+  
+      if (token) {
+        const userData = parseJwt(token);
+  
+        if (userData) {
+          // Periksa status is_active
+          if (userData.is_active === false || userData.is_active === "false") {
+            Swal.fire({
+              icon: "error",
+              title: "Akun Diblokir",
+              text: "Akun Anda telah diblokir. Silakan hubungi administrator untuk informasi lebih lanjut.",
+              confirmButtonText: "OK",
+            }).then(() => {
+              // Hapus token dan arahkan ke halaman login
+              localStorage.removeItem("token");
+              window.location.href = "https://pos-akuntan.github.io/";
+            });
+          } else {
+            // Jika is_active true, lanjutkan menampilkan data pengguna
+            document.getElementById("userGreeting").textContent = `Hello, ${userData.name}!`;
+            document.getElementById("userEmail").textContent = `Email: ${userData.email}`;
+            document.getElementById("userRole").textContent = `Role: ${
+              userData.role === "user" ? "Kasir" : "Admin"
+            }`;
+          }
+        } else {
+          console.warn("Unable to decode token.");
+        }
+      } else {
+        console.warn("Token not found in localStorage.");
+        window.location.href = "https://pos-akuntan.github.io/"; // Arahkan ke halaman login jika token tidak ada
+      }
+    });
+  </script>
   
   
   

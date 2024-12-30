@@ -186,16 +186,16 @@
         const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
         const cartList = document.getElementById("cartList");
         const totalPriceElement = document.getElementById("totalPrice");
-    
+
         // Fungsi untuk menghitung total harga
         function calculateTotalPrice(products) {
           return products.reduce((total, product) => {
             return total + parseFloat(product.price) * product.quantity;
           }, 0);
         }
-    
+
         // Render products dari localStorage
-        selectedProducts.forEach((product) => {
+        selectedProducts.forEach((product, index) => {
           const listItem = document.createElement("li");
           listItem.className = "list-group-item d-flex justify-content-between align-items-center";
           listItem.innerHTML = `
@@ -204,58 +204,74 @@
               <small>Category: ${product.category}</small> <br>
               <small>Description: ${product.description}</small> <br>
               <small>Price: ${product.price}</small> <br>
-              <small>Quantity: ${product.quantity}</small>
+              <small>Quantity: <span id="quantity-${index}">${product.quantity}</span></small>
             </div>
-            <span class="badge bg-primary rounded-pill">${product.quantity}</span>
+            <div>
+              <button class="btn btn-sm btn-danger" id="decrease-${index}">-</button>
+              <span class="badge bg-primary rounded-pill" id="badge-${index}">${product.quantity}</span>
+            </div>
           `;
           cartList.appendChild(listItem);
+
+          // Event Listener untuk tombol "-"
+          document.getElementById(`decrease-${index}`).addEventListener("click", () => {
+            if (product.quantity > 1) {
+              product.quantity--; // Kurangi kuantitas
+              document.getElementById(`quantity-${index}`).textContent = product.quantity; // Update UI
+              document.getElementById(`badge-${index}`).textContent = product.quantity; // Update badge
+              localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts)); // Simpan perubahan
+              totalPriceElement.textContent = calculateTotalPrice(selectedProducts).toFixed(2); // Update total harga
+            } else {
+              Swal.fire("Info", "Minimum quantity is 1. Remove the product instead if not needed.", "info");
+            }
+          });
         });
-    
+
         // Perbarui total harga di UI
         totalPriceElement.textContent = calculateTotalPrice(selectedProducts).toFixed(2);
       });
-    
+
       // Handle Cancel Button
       const cancelButton = document.getElementById("cancelButton");
       cancelButton.addEventListener("click", () => {
         localStorage.removeItem("selectedProducts");
         window.location.href = "barang.html";
       });
-    
+
       // Handle Checkout Button
       const checkoutButton = document.getElementById("checkoutButton");
       checkoutButton.addEventListener("click", () => {
         const paymentModal = new bootstrap.Modal(document.getElementById("paymentModal"));
         paymentModal.show();
       });
-    
+
       // Handle Pay Button in Payment Modal
       document.getElementById("payButton").addEventListener("click", async () => {
         const paymentMethod = "cash"; // Tetapkan metode pembayaran ke Cash
         const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-    
+
         if (selectedProducts.length === 0) {
           Swal.fire("Error", "No products selected. Please add products to the cart.", "error");
           return;
         }
-    
+
         const totalAmount = selectedProducts.reduce(
           (total, product) => total + parseFloat(product.price) * product.quantity,
           0
         );
-    
+
         const transactionData = {
           transaction_date: new Date().toISOString(),
           payment_method: paymentMethod,
           total_amount: totalAmount,
         };
-    
+
         const token = localStorage.getItem("token");
         if (!token) {
           Swal.fire("Error", "Please log in to complete the transaction.", "error");
           return;
         }
-    
+
         try {
           // Simpan transaksi ke tabel transactions
           const response = await fetch("https://pos-ochre.vercel.app/api/transactions", {
@@ -266,15 +282,15 @@
             },
             body: JSON.stringify(transactionData),
           });
-    
+
           if (!response.ok) {
             const errorResponse = await response.json();
             Swal.fire("Error", errorResponse.message || "There was an error processing the transaction.", "error");
             return;
           }
-    
+
           const transaction = await response.json();
-    
+
           // Loop untuk menyimpan setiap produk ke tabel transaction_items
           for (const product of selectedProducts) {
             const transactionItemData = {
@@ -283,7 +299,7 @@
               quantity: product.quantity,
               unit_price: product.price, // Hanya properti yang diperbolehkan
             };
-    
+
             const itemResponse = await fetch("https://pos-ochre.vercel.app/api/transaction-items", {
               method: "POST",
               headers: {
@@ -292,14 +308,14 @@
               },
               body: JSON.stringify(transactionItemData),
             });
-    
+
             if (!itemResponse.ok) {
               const itemError = await itemResponse.json();
               Swal.fire("Error", itemError.message || "There was an error saving the transaction item.", "error");
               return;
             }
           }
-    
+
           // Bersihkan keranjang dan tampilkan pesan sukses
           localStorage.removeItem("selectedProducts");
           Swal.fire("Success", "Payment successful!", "success").then(() => {
@@ -311,6 +327,7 @@
         }
       });
     </script>
+
     
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>

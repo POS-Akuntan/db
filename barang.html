@@ -144,16 +144,17 @@
 
     <!-- Same structure as before -->
     <script>
+      let data = []; // Deklarasikan data sebagai variabel global
       let selectedProducts = [];
       let categoriesMap = {}; // Untuk mapping ID kategori ke nama kategori
-    
+      
       async function fetchGudangData() {
         try {
           // Fetch data kategori
           const categoryResponse = await fetch("https://pos-ochre.vercel.app/api/categories");
           const categories = await categoryResponse.json();
           const categoryFilter = document.getElementById("categoryFilter");
-    
+      
           // Tambahkan kategori ke dropdown filter
           categories.forEach((category) => {
             categoriesMap[category.id] = category.name;
@@ -162,13 +163,13 @@
             option.textContent = category.name;
             categoryFilter.appendChild(option);
           });
-    
+      
           // Fetch data produk
           const response = await fetch("https://pos-ochre.vercel.app/api/products");
-          const data = await response.json();
-    
+          data = await response.json(); // Simpan data produk ke variabel global
+      
           renderProducts(data); // Render semua produk
-    
+      
           // Event listener untuk dropdown filter
           categoryFilter.addEventListener("change", () => {
             const selectedCategory = categoryFilter.value;
@@ -189,83 +190,92 @@
       function renderProducts(data) {
         const tableBody = document.querySelector("#dt tbody");
         tableBody.innerHTML = "";
-    
+      
         data.forEach((item) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>
-                    <img src="${item.picture_url}" alt="${item.name}" style="width: 100px; height: auto;"/>
-                </td>
+                <td><img src="${item.picture_url}" alt="${item.name}" style="width: 50px;"></td>
                 <td>${item.name}</td>
-                <td>${categoriesMap[item.category] || item.category}</td>
+                <td>${item.category_name}</td>
                 <td>${item.description}</td>
                 <td>${item.price}</td>
-                <td id="stock-${item.id}">${item.stock}</td>
+                <td id="stock-${item.id_products}">${item.stock}</td>
                 <td>
-                    <button class="btn btn-success btn-sm" onclick="addProduct('${item.id}', '${item.name}', '${item.price}', '${item.category}', '${item.description}')">+</button>
-                    <input type="text" id="quantity-${item.id}" value="0" style="width: 40px; text-align: center;" readonly />
-                    <button class="btn btn-danger btn-sm" onclick="removeProduct('${item.id}')">-</button>
+                    <button class="btn btn-success btn-sm" onclick='addProduct(${JSON.stringify(item.id_products)})'>+</button>
+                    <input type="text" id="quantity-${item.id_products}" value="0" style="width: 40px; text-align: center;" readonly />
+                    <button class="btn btn-danger btn-sm" onclick="removeProduct('${item.id_products}')">-</button>
                 </td>
             `;
             tableBody.appendChild(row);
         });
-    
+      
         $("#dt").DataTable({
             responsive: true,
             destroy: true, // Hancurkan instance DataTable sebelumnya agar tidak duplikat
         });
-    }
+      }
+      
+      
     
-      function addProduct(id, name, price, category, description) {
-        const stockElement = document.getElementById(`stock-${id}`);
-        const quantityElement = document.getElementById(`quantity-${id}`);
+      function addProduct(productId) {
+        const stockElement = document.getElementById(`stock-${productId}`);
+        const quantityElement = document.getElementById(`quantity-${productId}`);
         let stock = parseInt(stockElement.innerText);
         let quantity = parseInt(quantityElement.value);
-    
+      
         if (stock > 0) {
           stockElement.innerText = stock - 1;
           quantityElement.value = quantity + 1;
-    
-          const productIndex = selectedProducts.findIndex((p) => p.id === id);
+      
+          const productIndex = selectedProducts.findIndex((p) => p.id === productId);
           if (productIndex > -1) {
             selectedProducts[productIndex].quantity += 1;
           } else {
+            // Cari data produk berdasarkan ID dari data global
+            const productData = data.find((item) => item.id_products === productId);
             selectedProducts.push({
-              id,
-              name,
-              price,
-              category,
-              description,
+              id: productData.id_products,
+              name: productData.name,
+              price: productData.price,
+              category: productData.category_name,
+              description: productData.description,
               quantity: 1,
             });
           }
           localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+          console.log("Selected Products:", selectedProducts); // Debugging log
         } else {
           alert("Stok habis!");
         }
       }
+      
+      
     
-      function removeProduct(id) {
-        const stockElement = document.getElementById(`stock-${id}`);
-        const quantityElement = document.getElementById(`quantity-${id}`);
-        let stock = parseInt(stockElement.innerText);
-        let quantity = parseInt(quantityElement.value);
-    
-        if (quantity > 0) {
-          stockElement.innerText = stock + 1;
-          quantityElement.value = quantity - 1;
-    
-          const productIndex = selectedProducts.findIndex((p) => p.id === id);
-          if (productIndex > -1) {
+  function removeProduct(id) {
+    const stockElement = document.getElementById(`stock-${id}`);
+    const quantityElement = document.getElementById(`quantity-${id}`);
+    let stock = parseInt(stockElement.innerText);
+    let quantity = parseInt(quantityElement.value);
+
+    if (quantity > 0) {
+        stockElement.innerText = stock + 1;
+        quantityElement.value = quantity - 1;
+
+        const productIndex = selectedProducts.findIndex((p) => p.id === id);
+        if (productIndex > -1) {
             if (selectedProducts[productIndex].quantity > 1) {
-              selectedProducts[productIndex].quantity -= 1;
+                selectedProducts[productIndex].quantity -= 1;
             } else {
-              selectedProducts.splice(productIndex, 1);
+                selectedProducts.splice(productIndex, 1);
             }
-          }
-          localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
         }
-      }
+        localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+        console.log("Updated Selected Products:", selectedProducts); // Debugging log
+    }
+}
+
+
+
     
       document.getElementById("checkoutBtn").addEventListener("click", function () {
         localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));

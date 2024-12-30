@@ -198,6 +198,7 @@
         selectedProducts.forEach((product, index) => {
           const listItem = document.createElement("li");
           listItem.className = "list-group-item d-flex justify-content-between align-items-center";
+          listItem.setAttribute("data-index", index);
           listItem.innerHTML = `
             <div>
               <strong>${product.name}</strong> <br>
@@ -222,7 +223,11 @@
               localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts)); // Simpan perubahan
               totalPriceElement.textContent = calculateTotalPrice(selectedProducts).toFixed(2); // Update total harga
             } else {
-              Swal.fire("Info", "Minimum quantity is 1. Remove the product instead if not needed.", "info");
+              // Hapus produk jika kuantitas = 1 dan tombol ditekan
+              selectedProducts.splice(index, 1);
+              localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts)); // Simpan perubahan
+              listItem.remove(); // Hapus dari UI
+              totalPriceElement.textContent = calculateTotalPrice(selectedProducts).toFixed(2); // Update total harga
             }
           });
         });
@@ -327,8 +332,6 @@
         }
       });
     </script>
-
-    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"></script>
   </body>

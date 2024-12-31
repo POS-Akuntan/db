@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+  <meta name="generator" content="Hugo 0.84.0">
+  <title>Kasir</title>
+
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.6.0/font/bootstrap-icons.css">
+
+  <!-- Custom styles for this template -->
+
+  <link href="resources/css/transaction.css" rel="stylesheet">
+
+  <style>
+
+  </style>
+
+  <!-- Custom javascript for this template -->
+  <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+
+</head>
+
+<body>
+
+
+    <!-- new -->
+    <div class="container">
+        <header class="blog-header py-3">
+          <div class="row flex-nowrap justify-content-between align-items-center">
+            <div class="col-8">
+              <a class="blog-header-logo text-dark" href="#">Kasirku</a>
+            </div>
+            <div class="col-4 d-flex justify-content-end align-items-center">
+              <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </div>     
+            <script>
+              document.getElementById("logoutBtn").addEventListener("click", function (event) {
+                event.preventDefault(); // Mencegah link untuk melakukan redirect langsung
+            
+                // Menghapus item dari localStorage
+                localStorage.removeItem("token");
+                localStorage.removeItem("userEmail");
+                localStorage.removeItem("userName");
+                localStorage.removeItem("userPhoneNumber");
+            
+                // Redirect ke halaman login setelah logout
+                window.location.href = "https://pos-akuntan.github.io/";
+              });
+            </script>
+          </div>
+        </header>
+        <div class="py-1 mb-4 border-bottom">
+            <nav class="navbar navbar-expand-lg navbar-light bg-default">
+              <div class="container-fluid">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                  <div class="navbar-nav">
+                    <a class="p-2 nav-link active" href="index.html"><i class="bi bi-house"></i> Home</a>
+                    <!-- <a class="p-2 nav-link" href="barang.html"><i class="bi bi-basket"></i> Barang</a>
+                    <a class="p-2 nav-link" href="kasir.html"><i class="bi bi-cart"></i> Kasir</a> -->
+                    <a class="p-2 nav-link" href="transaction.html"><i class="bi bi-cart"></i> Transaction</a>
+                  </div>
+                </div>
+              </div>
+            </nav>
+          </div>
+        <div class="row mt-4">
+          <div class="col-md-8">
+            <h4>Products</h4>
+            <div class="product-grid" id="productGrid">
+              <!-- Products will be dynamically added here -->
+            </div>
+          </div>
+          <div class="col-md-4">
+            <h4>Cart</h4>
+            <div class="cart" id="cart">
+              <!-- Cart items will be dynamically added here -->
+            </div>
+            <div class="cart-total" id="cartTotal">Total: Rp 0</div>
+            <button class="btn btn-primary pay-btn" id="checkoutButton">Pay</button>
+          </div>
+        </div>
+        <div
+        class="modal fade"
+        id="paymentModal"
+        tabindex="-1"
+        aria-labelledby="paymentModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="paymentModalLabel">
+                Choose Payment Method
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <label for="paymentMethod">Payment Method:</label>
+              <select id="paymentMethod" class="form-select">
+                <option value="cash">Cash</option>
+              </select>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+              <button type="button" class="btn btn-primary" id="payButton">
+                Pay
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script type="module">
+        import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
+        import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
+      
+        addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
+      
+        document.addEventListener("DOMContentLoaded", () => {
+          const cart = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+          const cartElement = document.getElementById("cart");
+          const cartTotalElement = document.getElementById("cartTotal");
+      
+          // Fungsi untuk menyimpan token dari URL ke localStorage
+          function saveTokenFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get("token");
+            if (token) {
+              localStorage.setItem("token", token);
+              console.log("Token berhasil disimpan ke localStorage:", token);
+            }
+          }
+      
+          // Fungsi untuk validasi login
+          function validateLogin() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+              Swal.fire({
+                title: "Akses Ditolak",
+                text: "Silahkan login terlebih dahulu",
+                icon: "warning",
+                confirmButtonText: "Login",
+              }).then(() => {
+                window.location.href = "https://pos-akuntan.github.io/";
+              });
+            }
+          }
+      
+          // Fetch data produk dari server
+          function fetchProducts() {
+            fetch("https://pos-ochre.vercel.app/api/products")
+              .then((response) => response.json())
+              .then((data) => {
+                const productGrid = document.getElementById("productGrid");
+                data.forEach((product) => {
+                  const productItem = document.createElement("div");
+                  productItem.classList.add("product-item");
+                  productItem.innerHTML = `
+                    <img src="${product.picture_url}" alt="${product.name}">
+                    <h6>${product.name}</h6>
+                    <p>Rp ${product.price}</p>
+                    <p>Stock: <span id="stock-${product.id_products}">${product.stock}</span></p>
+                  `;
+                  productItem.addEventListener("click", () => addToCart(product));
+                  productGrid.appendChild(productItem);
+                });
+              })
+              .catch((error) => console.error("Error fetching products:", error));
+          }
+      
+          // Fungsi untuk menambahkan produk ke keranjang
+          function addToCart(product) {
+            const stockElement = document.getElementById(`stock-${product.id_products}`);
+            let stock = parseInt(stockElement.innerText);
+      
+            if (stock > 0) {
+              const existingProduct = cart.find((item) => item.id_products === product.id_products);
+              if (existingProduct) {
+                existingProduct.quantity++;
+              } else {
+                cart.push({
+                  id_products: product.id_products,
+                  name: product.name,
+                  price: product.price,
+                  quantity: 1,
+                  category: product.category,
+                  description: product.description,
+                });
+              }
+              stockElement.innerText = stock - 1;
+              localStorage.setItem("selectedProducts", JSON.stringify(cart));
+              updateCart();
+            } else {
+              Swal.fire({
+                title: "Stok Habis",
+                text: "Tidak dapat menambahkan produk ini",
+                icon: "error",
+              });
+            }
+          }
+      
+          // Fungsi untuk memperbarui tampilan keranjang
+          function updateCart() {
+            cartElement.innerHTML = "";
+            let total = 0;
+            cart.forEach((item) => {
+              total += item.price * item.quantity;
+              const cartItem = document.createElement("div");
+              cartItem.classList.add("cart-item");
+              cartItem.innerHTML = `
+                <span>${item.name} (${item.quantity})</span>
+                <span>Rp ${item.price * item.quantity}</span>
+              `;
+              cartElement.appendChild(cartItem);
+            });
+            cartTotalElement.textContent = `Total: Rp ${total}`;
+          }
+      
+
+      // Handle Checkout Button
+      const checkoutButton = document.getElementById("checkoutButton");
+      checkoutButton.addEventListener("click", () => {
+        const paymentModal = new bootstrap.Modal(document.getElementById("paymentModal"));
+        paymentModal.show();
+      });
+
+      // Handle Pay Button in Payment Modal
+      document.getElementById("payButton").addEventListener("click", async () => {
+        const paymentMethod = "cash"; // Tetapkan metode pembayaran ke Cash
+        const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+
+        if (selectedProducts.length === 0) {
+          Swal.fire("Error", "No products selected. Please add products to the cart.", "error");
+          return;
+        }
+
+        const totalAmount = selectedProducts.reduce(
+          (total, product) => total + parseFloat(product.price) * product.quantity,
+          0
+        );
+
+        const transactionData = {
+          transaction_date: new Date().toISOString(),
+          payment_method: paymentMethod,
+          total_amount: totalAmount,
+        };
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          Swal.fire("Error", "Please log in to complete the transaction.", "error");
+          return;
+        }
+
+        try {
+          // Simpan transaksi ke tabel transactions
+          const response = await fetch("https://pos-ochre.vercel.app/api/transactions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(transactionData),
+          });
+
+          if (!response.ok) {
+            const errorResponse = await response.json();
+            Swal.fire("Error", errorResponse.message || "There was an error processing the transaction.", "error");
+            return;
+          }
+
+          const transaction = await response.json();
+
+          // Loop untuk menyimpan setiap produk ke tabel transaction_items
+          for (const product of selectedProducts) {
+            const transactionItemData = {
+              id_transactions: transaction.id_transactions, // Perbarui sesuai kolom database
+              id_products: product.id_products, // Sesuai dengan id produk
+              quantity: product.quantity,
+              unit_price: product.price, // Hanya properti yang diperbolehkan
+            };
+            console.log(transactionItemData)
+            const itemResponse = await fetch("https://pos-ochre.vercel.app/api/transaction-items", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              },
+              body: JSON.stringify(transactionItemData),
+            });
+
+            if (!itemResponse.ok) {
+              const itemError = await itemResponse.json();
+              Swal.fire("Error", itemError.message || "There was an error saving the transaction item.", "error");
+              return;
+            }
+          }
+
+          // Bersihkan keranjang dan tampilkan pesan sukses
+          localStorage.removeItem("selectedProducts");
+          Swal.fire("Success", "Payment successful!", "success").then(() => {
+            window.location.href = "transaction.html";
+          });
+        } catch (error) {
+          console.error("Error Processing Transaction:", error);
+          Swal.fire("Error", "There was an error processing the transaction.", "error");
+        }
+      });
+      
+          saveTokenFromURL();
+          validateLogin();
+          fetchProducts();
+          updateCart();
+        });
+      </script>
+      
+</body>
+
+</html>

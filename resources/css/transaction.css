@@ -1,82 +1,93 @@
 #dt.dataTable.no-footer {
-    border-bottom: unset;
-  }
+  border-bottom: unset;
+}
 
-  #dt tbody td {
-    display: block;
-    border: unset;
-  }
+#dt tbody td {
+  display: block;
+  border: unset;
+}
 
-  #dt>tbody>tr>td {
-    border-top: unset;
-  }
+#dt>tbody>tr>td {
+  border-top: unset;
+}
 
-  .dataTables_paginate {
-    display: flex;
-    align-items: center;
-  }
+.dataTables_paginate {
+  display: flex;
+  align-items: center;
+}
 
-  .dataTables_paginate a {
-    padding: 0 10px;
-  }
+.dataTables_paginate a {
+  padding: 0 10px;
+}
 
-  img {
-    height: 180px;
-  }
+/* Gaya gambar */
+img {
+  max-width: 100%; /* Pastikan gambar tidak melebihi lebar kontainer */
+  height: 180px; /* Tetap pada tinggi tertentu */
+  object-fit: cover; /* Memastikan gambar terpotong tanpa distorsi */
+  border-radius: 4px; /* Tambahkan sudut melengkung untuk estetika */
+}
 
-  /*next*/
+/*next*/
 
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-  }
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Lebar minimum kartu 200px */
+  gap: 15px; /* Jarak antar item */
+}
 
-  .product-item {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    text-align: center;
-    padding: 10px;
-    cursor: pointer;
-    transition: transform 0.2s;
-  }
+/* Kartu produk */
+.product-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  background-color: #fff; /* Tambahkan latar belakang putih */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%; /* Memastikan tinggi kartu seragam */
+}
 
-  .product-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  }
+.product-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+}
 
-  .cart {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    max-height: 500px;
-    overflow-y: auto;
-  }
+/* Gaya keranjang */
+.cart {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+}
 
-  .cart-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid #ddd;
-  }
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
 
-  .cart-total {
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    text-align: right;
-  }
+.cart-total {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: right;
+}
 
-  .pay-btn {
-    margin-top: 20px;
-    width: 100%;
-    font-size: 18px;
-  }
+.pay-btn {
+  margin-top: 20px;
+  width: 100%;
+  font-size: 18px;
+}
 
-  .product-item .stock-info.out-of-stock {
-    color: red;
-    font-weight: bold;
-  }
-  
+/* Informasi stok */
+.product-item .stock-info.out-of-stock {
+  color: red;
+  font-weight: bold;
+}

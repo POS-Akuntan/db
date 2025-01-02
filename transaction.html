@@ -9,6 +9,7 @@
   <meta name="generator" content="Hugo 0.84.0">
   <title>Kasir</title>
 
+
   <!-- Bootstrap core CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css">
 
@@ -18,6 +19,11 @@
   <!-- Custom styles for this template -->
 
   <link href="resources/css/transaction.css" rel="stylesheet">
+
+  <style>
+
+  </style>
+
   <!-- Custom javascript for this template -->
   <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -31,53 +37,48 @@
 
     <!-- new -->
     <div class="container">
-      <header class="blog-header py-3">
-        <div class="row flex-nowrap justify-content-between align-items-center">
-          <!-- <div class="col-4 pt-1">
-          <a class="link-secondary" href="#">Subscribe</a>
-        </div> -->
-          <div class="col-8">
-            <a class="blog-header-logo text-dark" href="#">Kasirku</a>
-          </div>
-          <div class="col-4 d-flex justify-content-end align-items-center">
-            <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-secondary">
-              <i class="bi bi-box-arrow-right"></i> Logout
-            </a>
-          </div>     
-          <script>
-            document.getElementById("logoutBtn").addEventListener("click", function (event) {
-              event.preventDefault(); // Mencegah link untuk melakukan redirect langsung
-          
-              // Menghapus item dari localStorage
-              localStorage.removeItem("token");
-              localStorage.removeItem("userEmail");
-              localStorage.removeItem("userName");
-              localStorage.removeItem("userPhoneNumber");
-          
-              // Redirect ke halaman login setelah logout
-              window.location.href = "https://pos-akuntan.github.io/";
-            });
-          </script>
-        </div>
-      </header>
-  
-      <div class="py-1 mb-4 border-bottom">
-        <nav class="navbar navbar-expand-lg navbar-light bg-default">
-          <div class="container-fluid">
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-              <div class="navbar-nav">
-                <a class="p-2 nav-link active" href="index.html"><i class="bi bi-house"></i> Home</a>
-                <a class="p-2 nav-link" href="transaction.html"><i class="bi bi-basket"></i> Transaction</a>
-                <!-- <a class="p-2 nav-link" href="barang.html"><i class="bi bi-basket"></i> Barang</a>
-                <a class="p-2 nav-link" href="kasir.html"><i class="bi bi-cart"></i> Kasir</a>
-                <a class="p-2 nav-link" href="transaction.html"><i class="bi bi-cart"></i> Transaction</a> -->
-              </div>
+        <header class="blog-header py-3">
+          <div class="row flex-nowrap justify-content-between align-items-center">
+            <div class="col-8">
+              <a class="blog-header-logo text-dark" href="#">Kasirku</a>
             </div>
+            <div class="col-4 d-flex justify-content-end align-items-center">
+              <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-box-arrow-right"></i> Logout
+              </a>
+            </div>     
+            <script>
+              document.getElementById("logoutBtn").addEventListener("click", function (event) {
+                event.preventDefault(); // Mencegah link untuk melakukan redirect langsung
+            
+                // Menghapus item dari localStorage
+                localStorage.removeItem("token");
+                localStorage.removeItem("userEmail");
+                localStorage.removeItem("userName");
+                localStorage.removeItem("userPhoneNumber");
+            
+                // Redirect ke halaman login setelah logout
+                window.location.href = "https://pos-akuntan.github.io/";
+              });
+            </script>
           </div>
-        </nav>
-      </div>
-    </div>
-
+        </header>
+        <div class="py-1 mb-4 border-bottom">
+            <nav class="navbar navbar-expand-lg navbar-light bg-default">
+              <div class="container-fluid">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                  <div class="navbar-nav">
+                    <a class="p-2 nav-link active" href="index.html"><i class="bi bi-house"></i> Home</a>
+                    <a class="p-2 nav-link" href="transaction.html"><i class="bi bi-basket"></i> Transaction</a>
+                    <!-- <a class="p-2 nav-link" href="barang.html"><i class="bi bi-basket"></i> Barang</a>
+                    <a class="p-2 nav-link" href="kasir.html"><i class="bi bi-cart"></i> Kasir</a> -->
+                    <!-- <a class="p-2 nav-link" href="transaction.html"><i class="bi bi-cart"></i> Transaction</a> -->
+                  </div>
+                </div>
+              </div>
+            </nav>
+          </div>
+          
         <div class="row mt-4">
           <div class="col-md-8">
             <h4>Products</h4>

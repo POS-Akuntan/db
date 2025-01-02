@@ -21,7 +21,31 @@
   <link href="resources/css/transaction.css" rel="stylesheet">
 
   <style>
+    #dt.dataTable.no-footer {
+      border-bottom: unset;
+    }
 
+    #dt tbody td {
+      display: block;
+      border: unset;
+    }
+
+    #dt>tbody>tr>td {
+      border-top: unset;
+    }
+
+    .dataTables_paginate {
+      display: flex;
+      align-items: center;
+    }
+
+    .dataTables_paginate a {
+      padding: 0 10px;
+    }
+
+    img {
+      height: 180px;
+    }
   </style>
 
   <!-- Custom javascript for this template -->
@@ -78,7 +102,7 @@
               </div>
             </nav>
           </div>
-          
+        </header>
         <div class="row mt-4">
           <div class="col-md-8">
             <h4>Products</h4>

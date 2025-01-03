@@ -298,20 +298,41 @@
             }
           }
       
+          // Fungsi untuk mengurangi jumlah item atau menghapusnya dari cart
+          function decreaseCartItem(index) {
+            if (cart[index].quantity > 1) {
+              cart[index].quantity--;
+            } else {
+              cart.splice(index, 1); // Hapus item jika jumlahnya menjadi 0
+            }
+            localStorage.setItem("selectedProducts", JSON.stringify(cart)); // Update localStorage
+            updateCart(); // Perbarui tampilan cart
+          }
+      
           function updateCart() {
             cartElement.innerHTML = "";
             let total = 0;
-            cart.forEach((item) => {
+            cart.forEach((item, index) => {
               total += item.price * item.quantity;
               const cartItem = document.createElement("div");
               cartItem.classList.add("cart-item");
               cartItem.innerHTML = `
                 <span>${item.name} (${item.quantity})</span>
                 <span>Rp ${item.price * item.quantity}</span>
+                <button class="btn btn-sm btn-danger remove-btn" data-index="${index}">-</button>
               `;
               cartElement.appendChild(cartItem);
             });
             cartTotalElement.textContent = `Total: Rp ${total}`;
+      
+            // Tambahkan event listener ke tombol "-"
+            const removeButtons = document.querySelectorAll(".remove-btn");
+            removeButtons.forEach((button) => {
+              button.addEventListener("click", (event) => {
+                const index = parseInt(event.target.dataset.index);
+                decreaseCartItem(index);
+              });
+            });
           }
       
           const checkoutButton = document.getElementById("checkoutButton");

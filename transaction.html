@@ -93,8 +93,27 @@
             <div class="cart" id="cart"></div>
             <div class="cart-total" id="cartTotal">Total: Rp 0</div>
             <button class="btn btn-primary pay-btn" id="checkoutButton">Pay</button>
+                    <!-- forum customer -->
+        <div id="customerDetails" class="mt-4">
+          <h5>Customer Details</h5>
+          <div class="mb-3">
+            <label for="customerName" class="form-label">Customer Name</label>
+            <input type="text" class="form-control" id="customerName" placeholder="Enter customer name" required>
+          </div>
+          <div class="mb-3">
+            <label for="customerPhone" class="form-label">Customer Phone</label>
+            <input type="text" class="form-control" id="customerPhone" placeholder="Enter customer phone" required>
+          </div>
+          <div class="mb-3">
+            <label for="tableNumber" class="form-label">Table Number</label>
+            <input type="text" class="form-control" id="tableNumber" placeholder="Enter table number" required>
           </div>
         </div>
+          </div>
+        </div>
+
+
+        
 
         <div
         class="modal fade"
@@ -300,29 +319,44 @@
     document.getElementById("payButton").addEventListener("click", async () => {
       const paymentMethod = "cash";
       const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-
+    
+      // Ambil input data customer
+      const customerName = document.getElementById("customerName").value;
+      const customerPhone = document.getElementById("customerPhone").value;
+      const tableNumber = document.getElementById("tableNumber").value;
+    
+      // Validasi input data customer
+      if (!customerName || !customerPhone || !tableNumber) {
+        Swal.fire("Error", "Please fill out all customer details.", "error");
+        return;
+      }
+    
+      // Validasi jika tidak ada produk yang dipilih
       if (selectedProducts.length === 0) {
         Swal.fire("Error", "No products selected. Please add products to the cart.", "error");
         return;
       }
-
+    
       const totalAmount = selectedProducts.reduce(
         (total, product) => total + parseFloat(product.price) * product.quantity,
         0
       );
-
+    
       const transactionData = {
         transaction_date: new Date().toISOString(),
         payment_method: paymentMethod,
         total_amount: totalAmount,
+        customer_name: customerName, // Tambahkan nama customer
+        customer_phone: customerPhone, // Tambahkan nomor telepon customer
+        table_number: tableNumber, // Tambahkan nomor meja
       };
-
+    
       const token = localStorage.getItem("token");
       if (!token) {
         Swal.fire("Error", "Please log in to complete the transaction.", "error");
         return;
       }
-
+    
       try {
         const response = await fetch("https://pos-ochre.vercel.app/api/transactions", {
           method: "POST",
@@ -332,15 +366,15 @@
           },
           body: JSON.stringify(transactionData),
         });
-
+    
         if (!response.ok) {
           const errorResponse = await response.json();
           Swal.fire("Error", errorResponse.message || "There was an error processing the transaction.", "error");
           return;
         }
-
+    
         const transaction = await response.json();
-
+    
         for (const product of selectedProducts) {
           const transactionItemData = {
             id_transactions: transaction.id_transactions,
@@ -348,7 +382,7 @@
             quantity: product.quantity,
             unit_price: product.price,
           };
-
+    
           const itemResponse = await fetch("https://pos-ochre.vercel.app/api/transaction-items", {
             method: "POST",
             headers: {
@@ -357,14 +391,14 @@
             },
             body: JSON.stringify(transactionItemData),
           });
-
+    
           if (!itemResponse.ok) {
             const itemError = await itemResponse.json();
             Swal.fire("Error", itemError.message || "There was an error saving the transaction item.", "error");
             return;
           }
         }
-
+    
         localStorage.removeItem("selectedProducts");
         Swal.fire("Success", "Payment successful!", "success").then(() => {
           window.location.href = "transaction.html";
@@ -374,6 +408,7 @@
         Swal.fire("Error", "There was an error processing the transaction.", "error");
       }
     });
+    
 
     saveTokenFromURL();
     validateLogin();

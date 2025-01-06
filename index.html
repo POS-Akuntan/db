@@ -15,7 +15,7 @@
 
   <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.6.0/font/bootstrap-icons.css">
-  <script type="module">
+  <!-- <script type="module">
     import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
     import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
   
@@ -52,7 +52,7 @@
       saveTokenFromURL();
       validateLogin();
     });
-  </script>
+  </script> -->
 
 
   <!-- Custom styles for this template -->
@@ -153,6 +153,117 @@
               <h3 id="userGreeting">Hello, User!</h3>
               <p id="userEmail" class="text-muted">user@example.com</p>
               <p id="userRole" class="fw-bold">Role: User</p>
+              <!-- Tombol untuk membuka modal -->
+<button class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+  Change Password
+</button>
+
+<!-- Modal untuk Ubah Password -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="changePasswordForm">
+          <div class="mb-3">
+            <label for="oldPassword" class="form-label">Old Password</label>
+            <input type="password" class="form-control" id="oldPassword" required>
+          </div>
+          <div class="mb-3">
+            <label for="newPassword" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newPassword" required>
+          </div>
+          <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirmPassword" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="module">
+  import Swal from "https://cdn.jsdelivr.net/npm/sweetalert2@11/src/sweetalert2.js";
+  import { addCSS } from "https://cdn.jsdelivr.net/gh/jscroot/lib@0.0.9/element.js";
+  
+  addCSS("https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.css");
+
+  document.getElementById("changePasswordForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const oldPassword = document.getElementById("oldPassword").value;
+    const newPassword = document.getElementById("newPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    // Validasi input
+    if (newPassword !== confirmPassword) {
+      Swal.fire("Error", "New password and confirm password do not match.", "error");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      Swal.fire("Error", "New password must be at least 8 characters long.", "error");
+      return;
+    }
+
+    try {
+      // Ambil token dari localStorage
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        Swal.fire("Error", "Token not found. Please login again.", "error");
+        return;
+      }
+
+      // Dekode JWT token untuk mendapatkan id_users
+      function parseJwt(token) {
+        const base64Url = token.split(".")[1];
+        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+        return JSON.parse(atob(base64));
+      }
+
+      const userData = parseJwt(token);
+      const userId = userData.id_users;
+
+      if (!userId) {
+        Swal.fire("Error", "User ID not found in token. Please login again.", "error");
+        return;
+      }
+
+      // Panggil API untuk mengubah password
+      const response = await fetch(`https://pos-ochre.vercel.app/api/auth/users/${userId}/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ oldPassword, newPassword }),
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        Swal.fire("Error", errorResponse.message || "Failed to change password.", "error");
+        return;
+      }
+
+      const responseData = await response.json();
+      Swal.fire("Success", responseData.message, "success").then(() => {
+        document.getElementById("changePasswordForm").reset();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById("changePasswordModal"));
+        modalInstance.hide();
+      });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      Swal.fire("Error", "An error occurred while changing the password.", "error");
+    }
+  });
+</script>
+
+
             </div>
           </div>
         </div>

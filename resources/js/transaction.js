@@ -72,7 +72,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updatePaginationInfo() {
     const totalPages = Math.ceil(allProducts.length / productsPerPage);
-    document.getElementById("paginationInfo").innerText = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById(
+      "paginationInfo"
+    ).innerText = `Page ${currentPage} of ${totalPages}`;
     document.getElementById("prevPage").disabled = currentPage === 1;
     document.getElementById("nextPage").disabled = currentPage === totalPages;
   }
@@ -93,11 +95,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function addToCart(product) {
-    const stockElement = document.getElementById(`stock-${product.id_products}`);
+    const stockElement = document.getElementById(
+      `stock-${product.id_products}`
+    );
     let stock = parseInt(stockElement.innerText);
 
     if (stock > 0) {
-      const existingProduct = cart.find((item) => item.id_products === product.id_products);
+      const existingProduct = cart.find(
+        (item) => item.id_products === product.id_products
+      );
       if (existingProduct) {
         existingProduct.quantity++;
       } else {
@@ -161,110 +167,136 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const checkoutButton = document.getElementById("checkoutButton");
   checkoutButton.addEventListener("click", () => {
-    const paymentModal = new bootstrap.Modal(document.getElementById("paymentModal"));
+    const paymentModal = new bootstrap.Modal(
+      document.getElementById("paymentModal")
+    );
     paymentModal.show();
   });
-  
+
   //button dan fungsi pay
   document.getElementById("payButton").addEventListener("click", async () => {
     const paymentMethod = "cash";
-    const selectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
+    const selectedProducts =
+      JSON.parse(localStorage.getItem("selectedProducts")) || [];
     const customerName = document.getElementById("customerName").value;
     const customerPhone = document.getElementById("customerPhone").value;
     const tableNumber = document.getElementById("tableNumber").value;
 
     // Validasi input
     if (!customerName || !customerPhone || !tableNumber) {
-        Swal.fire("Error", "Please fill out all customer details.", "error");
-        return;
+      Swal.fire("Error", "Please fill out all customer details.", "error");
+      return;
     }
 
     if (selectedProducts.length === 0) {
-        Swal.fire("Error", "No products selected. Please add products to the cart.", "error");
-        return;
+      Swal.fire(
+        "Error",
+        "No products selected. Please add products to the cart.",
+        "error"
+      );
+      return;
     }
 
     const totalAmount = selectedProducts.reduce(
-        (total, product) => total + parseFloat(product.price) * product.quantity,
-        0
+      (total, product) => total + parseFloat(product.price) * product.quantity,
+      0
     );
 
     const transactionData = {
-        transaction_date: new Date().toISOString(),
-        payment_method: paymentMethod,
-        total_amount: totalAmount,
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        table_number: tableNumber,
+      transaction_date: new Date().toISOString(),
+      payment_method: paymentMethod,
+      total_amount: totalAmount,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      table_number: tableNumber,
     };
 
     const token = localStorage.getItem("token");
     if (!token) {
-        Swal.fire("Error", "Please log in to complete the transaction.", "error");
-        return;
+      Swal.fire("Error", "Please log in to complete the transaction.", "error");
+      return;
     }
 
     try {
-        const response = await fetch("https://pos-ochre.vercel.app/api/transactions", {
+      const response = await fetch(
+        "https://pos-ochre.vercel.app/api/transactions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(transactionData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        Swal.fire(
+          "Error",
+          errorResponse.message ||
+            "There was an error processing the transaction.",
+          "error"
+        );
+        return;
+      }
+
+      const transaction = await response.json();
+
+      for (const product of selectedProducts) {
+        const transactionItemData = {
+          id_transactions: transaction.id_transactions,
+          id_products: product.id_products,
+          quantity: product.quantity,
+          unit_price: product.price,
+        };
+
+        const itemResponse = await fetch(
+          "https://pos-ochre.vercel.app/api/transaction-items",
+          {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(transactionData),
-        });
+            body: JSON.stringify(transactionItemData),
+          }
+        );
 
-        if (!response.ok) {
-            const errorResponse = await response.json();
-            Swal.fire("Error", errorResponse.message || "There was an error processing the transaction.", "error");
-            return;
+        if (!itemResponse.ok) {
+          const itemError = await itemResponse.json();
+          Swal.fire(
+            "Error",
+            itemError.message ||
+              "There was an error saving the transaction item.",
+            "error"
+          );
+          return;
         }
+      }
 
-        const transaction = await response.json();
-
-        for (const product of selectedProducts) {
-            const transactionItemData = {
-                id_transactions: transaction.id_transactions,
-                id_products: product.id_products,
-                quantity: product.quantity,
-                unit_price: product.price,
-            };
-
-            const itemResponse = await fetch("https://pos-ochre.vercel.app/api/transaction-items", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(transactionItemData),
-            });
-
-            if (!itemResponse.ok) {
-                const itemError = await itemResponse.json();
-                Swal.fire("Error", itemError.message || "There was an error saving the transaction item.", "error");
-                return;
-            }
+      // Ambil produk yang baru saja di-checkout
+      const itemsResponse = await fetch(
+        `https://pos-ochre.vercel.app/api/transaction-items/${transaction.id_transactions}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
+      );
 
-        // Ambil produk yang baru saja di-checkout
-        const itemsResponse = await fetch(`https://pos-ochre.vercel.app/api/transaction-items/${transaction.id_transactions}`, {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+      if (!itemsResponse.ok) {
+        Swal.fire("Error", "Failed to fetch transaction items.", "error");
+        return;
+      }
 
-        if (!itemsResponse.ok) {
-            Swal.fire("Error", "Failed to fetch transaction items.", "error");
-            return;
-        }
+      const transactionItems = await itemsResponse.json();
 
-        const transactionItems = await itemsResponse.json();
-
-        // Tampilkan popup dengan data produk
-// Tampilkan popup dengan gaya seperti struk pembayaran
-// Tampilkan popup dengan gaya seperti struk pembayaran
-let itemsHtml = `
+      // Tampilkan popup dengan data produk
+      // Tampilkan popup dengan gaya seperti struk pembayaran
+      // Tampilkan popup dengan gaya seperti struk pembayaran
+      let itemsHtml = `
 <table style="width: 100%; text-align: left; border-collapse: collapse;">
 <thead>
 <tr>
@@ -276,24 +308,24 @@ let itemsHtml = `
 <tbody>
 `;
 
-transactionItems.forEach(item => {
-itemsHtml += `
+      transactionItems.forEach((item) => {
+        itemsHtml += `
 <tr>
 <td style="padding: 8px;">${item.product_name}</td>
 <td style="padding: 8px;">${item.quantity}</td>
 <td style="padding: 8px;">Rp ${item.total_price.toLocaleString("id-ID")}</td>
 </tr>
 `;
-});
+      });
 
-itemsHtml += `
+      itemsHtml += `
 </tbody>
 </table>
 `;
 
-Swal.fire({
-title: '<h4 style="margin-bottom: 10px;">Transaction Complete!</h4>',
-html: `
+      Swal.fire({
+        title: '<h4 style="margin-bottom: 10px;">Transaction Complete!</h4>',
+        html: `
 <div style="text-align: center;">
 <p style="margin: 0; font-size: 14px;">Customer Name:</p>
 <strong style="display: block; margin-bottom: 5px; font-size: 16px;">${customerName}</strong>
@@ -308,29 +340,29 @@ ${itemsHtml}
 <span style="font-size: 18px;">Rp ${totalAmount.toLocaleString("id-ID")}</span>
 </div>
 `,
-icon: "success",
-showConfirmButton: true,
-confirmButtonText: "OK",
-customClass: {
-popup: 'swal2-popup-custom',
-},
-width: '400px',
-}).then(() => {
-// Redirect to transaction.html
-window.location.href = "transaction.html";
-});
+        icon: "success",
+        showConfirmButton: true,
+        confirmButtonText: "OK",
+        customClass: {
+          popup: "swal2-popup-custom",
+        },
+        width: "400px",
+      }).then(() => {
+        // Redirect to transaction.html
+        window.location.href = "transaction.html";
+      });
 
-
-
-
-        localStorage.removeItem("selectedProducts");
-        updateCart();
+      localStorage.removeItem("selectedProducts");
+      updateCart();
     } catch (error) {
-        console.error("Error Processing Transaction:", error);
-        Swal.fire("Error", "There was an error processing the transaction.", "error");
+      console.error("Error Processing Transaction:", error);
+      Swal.fire(
+        "Error",
+        "There was an error processing the transaction.",
+        "error"
+      );
     }
-});
-
+  });
 
   // Fitur Sort by Category
   function fetchCategories() {
@@ -365,7 +397,9 @@ window.location.href = "transaction.html";
         allProducts = products;
         renderProducts();
       })
-      .catch((error) => console.error("Error fetching products by category:", error));
+      .catch((error) =>
+        console.error("Error fetching products by category:", error)
+      );
   }
 
   saveTokenFromURL();

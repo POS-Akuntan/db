@@ -134,39 +134,48 @@
         aria-labelledby="paymentModalLabel"
         aria-hidden="true"
       >
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="paymentModalLabel">
-                Choose Payment Method
-              </h5>
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div class="modal-body">
-              <label for="paymentMethod">Payment Method:</label>
-              <select id="paymentMethod" class="form-select">
-                <option value="cash">Cash</option>
-              </select>
-            </div>
-            <div class="modal-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"r
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-              <button type="button" class="btn btn-primary" id="payButton">
-                Pay
-              </button>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentModalLabel">
+              Choose Payment Method
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label for="paymentMethod">Payment Method:</label>
+            <select id="paymentMethod" class="form-select">
+              <option value="cash">Cash</option>
+              <option value="qris">Qris</option>
+            </select>
+      
+            <!-- QRIS Image (Hidden by default) -->
+            <div id="qrisContainer" class="text-center mt-3" style="display: none;">
+              <img src="resources/img/qris.png" alt="QRIS Payment" class="img-fluid" width="200">
             </div>
           </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Close
+            </button>
+            <button type="button" class="btn btn-primary" id="payButton">
+              Pay
+            </button>
+          </div>
         </div>
+      </div>
+      
+      <script>
+        document.getElementById("paymentMethod").addEventListener("change", function() {
+          var qrisContainer = document.getElementById("qrisContainer");
+          if (this.value === "qris") {
+            qrisContainer.style.display = "block";
+          } else {
+            qrisContainer.style.display = "none";
+          }
+        });
+      </script>
+      
       </div>
       <script src="resources/js/transaction.js" type="module"></script> 
       

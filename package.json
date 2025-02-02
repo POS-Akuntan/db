@@ -20,5 +20,8 @@
     "transform": {
       "^.+\\.jsx?$": "babel-jest"
     }
+  },
+  "dependencies": {
+    "db": "file:"
   }
 }

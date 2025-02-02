@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   //button dan fungsi pay
   document.getElementById("payButton").addEventListener("click", async () => {
-    const paymentMethod = "cash";
+    const paymentMethod = document.getElementById("paymentMethod").value; // Ambil nilai dari dropdown  
     const selectedProducts =
       JSON.parse(localStorage.getItem("selectedProducts")) || [];
     const customerName = document.getElementById("customerName").value;
